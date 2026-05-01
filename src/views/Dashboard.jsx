@@ -4,6 +4,7 @@ import { TIPS_DIARIOS, FERIADOS_MX } from '../data.js'
 import {
   getPeriodo, getGreeting, getTodayFormatted, getTodayTipIndex, getProfile,
   isoToDate, dateToIso, addDays, diaSemanaCorto, formatFechaCorta, isoToday,
+  getBloquesSemanasPeriodo, getBloqueDeFecha, contarSemanasPedagogicas,
 } from '../storage.js'
 
 export default function Dashboard({ onOpenTool, onOpenPeriodo, onOpenClass }) {
@@ -22,24 +23,35 @@ export default function Dashboard({ onOpenTool, onOpenPeriodo, onOpenClass }) {
     setBetaDismissed(true)
   }
 
-  // Calcular semana actual del periodo
+  // Calcular semana actual del periodo usando los bloques nuevos
   let semanaInfo = null
   if (periodo) {
     const todayIso = isoToday()
-    const inicioDate = isoToDate(periodo.fechaInicio)
-    const todayDate = isoToDate(todayIso)
-    const diffDays = Math.floor((todayDate - inicioDate) / (1000 * 60 * 60 * 24))
+    const bloques = getBloquesSemanasPeriodo(periodo)
 
-    if (diffDays >= 0 && diffDays < 56) {
-      const semanaActual = Math.floor(diffDays / 7) + 1
-      const inicioSemana = addDays(periodo.fechaInicio, (semanaActual - 1) * 7)
-      const dias = []
-      for (let i = 0; i < 7; i++) dias.push(addDays(inicioSemana, i))
-      semanaInfo = { semanaActual, dias, totalSemanas: 8 }
-    } else if (diffDays < 0) {
-      semanaInfo = { antesDelInicio: true, diasParaInicio: -diffDays }
-    } else {
-      semanaInfo = { despuesDelFin: true }
+    if (bloques.length > 0) {
+      const primerBloqueInicio = bloques[0].fechaInicio
+      const ultimoBloqueFin = bloques[bloques.length - 1].fechaFin
+
+      if (todayIso < primerBloqueInicio) {
+        const diff = Math.floor((isoToDate(primerBloqueInicio) - isoToDate(todayIso)) / (1000 * 60 * 60 * 24))
+        semanaInfo = { antesDelInicio: true, diasParaInicio: diff }
+      } else if (todayIso > ultimoBloqueFin) {
+        semanaInfo = { despuesDelFin: true }
+      } else {
+        // Encontrar el bloque actual
+        const bloqueActual = getBloqueDeFecha(periodo, todayIso)
+        if (bloqueActual) {
+          const dias = []
+          for (let i = 0; i < 7; i++) dias.push(addDays(bloqueActual.fechaInicio, i))
+          const totalPed = contarSemanasPedagogicas(periodo)
+          semanaInfo = {
+            bloque: bloqueActual,
+            dias,
+            totalPed,
+          }
+        }
+      }
     }
   }
 
@@ -75,7 +87,8 @@ export default function Dashboard({ onOpenTool, onOpenPeriodo, onOpenClass }) {
           <h1 className="page-title">{saludo}, {profile.nombre}</h1>
           <p className="page-subtitle">
             {fecha}
-            {semanaInfo?.semanaActual && ` · Semana ${semanaInfo.semanaActual} de ${semanaInfo.totalSemanas}`}
+            {semanaInfo?.bloque && !semanaInfo.bloque.esNoLectiva && ` · Semana pedagógica ${semanaInfo.bloque.numPedagogica} de ${semanaInfo.totalPed}`}
+            {semanaInfo?.bloque && semanaInfo.bloque.esNoLectiva && ` · ${semanaInfo.bloque.motivo} (semana no lectiva)`}
             {semanaInfo?.antesDelInicio && ` · Tu periodo inicia en ${semanaInfo.diasParaInicio} días`}
             {semanaInfo?.despuesDelFin && ` · Tu periodo terminó`}
           </p>
@@ -89,7 +102,6 @@ export default function Dashboard({ onOpenTool, onOpenPeriodo, onOpenClass }) {
         </div>
       </div>
 
-      {/* Aviso versión beta */}
       {!betaDismissed && (
         <div className="beta-banner">
           <Icon.Beta size={13} color="#854F0B" />
@@ -100,13 +112,12 @@ export default function Dashboard({ onOpenTool, onOpenPeriodo, onOpenClass }) {
         </div>
       )}
 
-      {/* Si no hay periodo configurado, invitar a configurarlo */}
       {!periodo && (
         <div className="periodo-empty" style={{ marginBottom: 14 }}>
           <Icon.Calendar size={28} color="#1a5f5a" />
           <h3 style={{ marginTop: 12 }}>Configura tu periodo</h3>
           <p>
-            Para mostrarte tu semana real, calendario, fechas del reto y semana de presentación, primero configura tu periodo de 8 semanas.
+            Para mostrarte tu semana real, calendario, fechas del reto y semana de presentación, primero configura tu periodo.
             Toma 2 minutos.
           </p>
           <button className="btn-primary" onClick={onOpenPeriodo}>
@@ -115,12 +126,10 @@ export default function Dashboard({ onOpenTool, onOpenPeriodo, onOpenClass }) {
         </div>
       )}
 
-      {/* Vista de la semana actual */}
-      {periodo && semanaInfo?.semanaActual && (
+      {periodo && semanaInfo?.bloque && (
         <SemanaActual periodo={periodo} semanaInfo={semanaInfo} onOpenClass={onOpenClass} onOpenPeriodo={onOpenPeriodo} />
       )}
 
-      {/* Tip pedagógico */}
       <div className="tip-box">
         <div className="tip-icon"><Icon.Idea size={16} color="white" /></div>
         <div>
@@ -147,9 +156,27 @@ export default function Dashboard({ onOpenTool, onOpenPeriodo, onOpenClass }) {
 function SemanaActual({ periodo, semanaInfo, onOpenClass, onOpenPeriodo }) {
   const todayIso = isoToday()
   const diasClaseSet = new Set(periodo.diasClase)
-  const semanaNum = semanaInfo.semanaActual
-  const esSemanaReto = (periodo.semanasReto || []).includes(semanaNum)
-  const esPresentacion = semanaNum === 8
+  const bloque = semanaInfo.bloque
+  const totalPed = semanaInfo.totalPed
+  const numPed = bloque.numPedagogica
+
+  // Si la semana actual es no lectiva, mostrar mensaje especial
+  if (bloque.esNoLectiva) {
+    return (
+      <div className="week-box">
+        <div className="week-header">
+          <div className="week-title">Esta semana es no lectiva</div>
+          <div className="week-counter">{bloque.motivo}</div>
+        </div>
+        <div style={{ padding: '12px 8px', textAlign: 'center', color: 'var(--tec-gray-700)', fontSize: 13 }}>
+          No hay clases programadas. Tu calendario se reanuda la próxima semana.
+        </div>
+      </div>
+    )
+  }
+
+  const esSemanaReto = (periodo.semanasReto || []).includes(numPed)
+  const esPresentacion = numPed === totalPed
 
   // Construir feriados aplicables
   const año1 = isoToDate(periodo.fechaInicio).getFullYear()
@@ -167,7 +194,7 @@ function SemanaActual({ periodo, semanaInfo, onOpenClass, onOpenPeriodo }) {
     if (semanaInfo.dias.includes(f.fecha)) feriadosSet[f.fecha] = f.nombre
   })
 
-  // Construir tarjetas de los días de clase
+  // Tarjetas de los días de clase
   const tarjetas = semanaInfo.dias.slice(0, 5).map((iso) => {
     const dow = diaSemanaCorto(iso)
     if (!diasClaseSet.has(dow)) return null
@@ -208,7 +235,7 @@ function SemanaActual({ periodo, semanaInfo, onOpenClass, onOpenPeriodo }) {
 
     let estado = editado.estado || (iso === todayIso ? 'today' : iso < todayIso ? 'done' : 'plan')
     const fasesReto = periodo.fasesReto || {}
-    const tema = editado.tema || (esSemanaReto ? fasesReto[semanaNum] || 'Reto' : 'Sin tema')
+    const tema = editado.tema || (esSemanaReto ? fasesReto[numPed] || 'Reto' : 'Sin tema')
 
     return (
       <div
@@ -240,8 +267,8 @@ function SemanaActual({ periodo, semanaInfo, onOpenClass, onOpenPeriodo }) {
     <div className="week-box">
       <div className="week-header">
         <div className="week-title">
-          Tu semana {semanaNum}
-          {esSemanaReto && <span style={{ color: 'var(--tec-amber)', marginLeft: 8, fontSize: 12 }}>· {periodo.fasesReto?.[semanaNum] || 'Semana del reto'}</span>}
+          Tu semana pedagógica {numPed}
+          {esSemanaReto && <span style={{ color: 'var(--tec-amber)', marginLeft: 8, fontSize: 12 }}>· {periodo.fasesReto?.[numPed] || 'Semana del reto'}</span>}
           {esPresentacion && <span style={{ color: '#185FA5', marginLeft: 8, fontSize: 12 }}>· Presentación final</span>}
         </div>
         <div className="week-counter">{planeadas} de {tarjetas.length} preparadas</div>

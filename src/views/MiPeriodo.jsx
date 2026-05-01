@@ -4,16 +4,16 @@ import { FERIADOS_MX } from '../data.js'
 import {
   getPeriodo, savePeriodo, updateClasePeriodo,
   isoToDate, dateToIso, addDays, diaSemanaCorto, formatFechaCorta,
+  calcularSemanasCalendario, getBloquesSemanasPeriodo, contarSemanasPedagogicas,
 } from '../storage.js'
 
 const DIAS_SEM_OPCIONES = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb']
-const DIAS_INDEX = { Dom: 0, Lun: 1, Mar: 2, Mié: 3, Jue: 4, Vie: 5, Sáb: 6 }
 
 export default function MiPeriodo({ onPlanearClase }) {
   const [periodo, setPeriodo] = useState(getPeriodo())
   const [editing, setEditing] = useState(!periodo)
   const [diaSeleccionado, setDiaSeleccionado] = useState(null)
-  const [tick, setTick] = useState(0)
+  const [, setTick] = useState(0)
 
   function handleSavePeriodo(p) {
     savePeriodo(p)
@@ -34,7 +34,7 @@ export default function MiPeriodo({ onPlanearClase }) {
       <div className="page-header">
         <div>
           <h1 className="page-title">Mi periodo</h1>
-          <p className="page-subtitle">Tu calendario real de 8 semanas con feriados, semana del reto y presentación final.</p>
+          <p className="page-subtitle">Tu calendario real con feriados, semana santa, semana del reto y presentación final.</p>
         </div>
       </div>
 
@@ -64,7 +64,7 @@ export default function MiPeriodo({ onPlanearClase }) {
 }
 
 // ============================================================
-// VACÍO · primer uso
+// VACÍO
 // ============================================================
 function PeriodoEmpty({ onStart }) {
   return (
@@ -72,7 +72,8 @@ function PeriodoEmpty({ onStart }) {
       <Icon.Calendar size={32} color="#1a5f5a" />
       <h3 style={{ marginTop: 12 }}>Configura tu periodo</h3>
       <p>
-        Aula CLARA necesita conocer tu calendario real para generar el dashboard, planear tus clases con fechas concretas y avisarte cuando se acerque la semana del reto.
+        Aula CLARA necesita conocer tu calendario real para generar el dashboard, planear tus clases con fechas concretas
+        y avisarte cuando se acerque la semana del reto.
         <br /><br />
         Toma 2 minutos. Después puedes editarlo cuando quieras.
       </p>
@@ -84,12 +85,15 @@ function PeriodoEmpty({ onStart }) {
 }
 
 // ============================================================
-// CONFIGURACIÓN · formulario
+// CONFIGURACIÓN · formulario con fecha inicio + fecha fin + semanas no lectivas
 // ============================================================
 function PeriodoConfig({ periodo, onSave, onCancel }) {
   const today = dateToIso(new Date())
   const [materia, setMateria] = useState(periodo?.materia || '')
   const [fechaInicio, setFechaInicio] = useState(periodo?.fechaInicio || today)
+  // fechaFin: si periodo viejo no tenía, calcular 8 semanas desde inicio (legacy)
+  const defaultFin = periodo?.fechaFin || addDays(periodo?.fechaInicio || today, 7 * 8 - 1)
+  const [fechaFin, setFechaFin] = useState(defaultFin)
   const [diasClase, setDiasClase] = useState(periodo?.diasClase || ['Lun', 'Mar', 'Mié', 'Jue', 'Vie'])
   const [hora, setHora] = useState(periodo?.hora || '')
   const [modalidadReto, setModalidadReto] = useState(periodo?.modalidadReto || 'B')
@@ -98,8 +102,13 @@ function PeriodoConfig({ periodo, onSave, onCancel }) {
   const [feriadosCustom, setFeriadosCustom] = useState(periodo?.feriadosCustom || [])
   const [feriadoNuevo, setFeriadoNuevo] = useState({ fecha: '', nombre: '' })
   const [feriadosMxSeleccion, setFeriadosMxSeleccion] = useState(
-    periodo?.feriadosMx ?? FERIADOS_MX.map((f) => f.fecha) // por default todos
+    periodo?.feriadosMx ?? FERIADOS_MX.map((f) => f.fecha)
   )
+  const [semanasNoLectivas, setSemanasNoLectivas] = useState(periodo?.semanasNoLectivas || [])
+
+  // Calculados en vivo
+  const totalSemanasCal = calcularSemanasCalendario(fechaInicio, fechaFin)
+  const semanasPed = totalSemanasCal - semanasNoLectivas.length
 
   function toggleDia(d) {
     setDiasClase((prev) => prev.includes(d) ? prev.filter((x) => x !== d) : [...prev, d])
@@ -135,37 +144,91 @@ function PeriodoConfig({ periodo, onSave, onCancel }) {
     setFeriadosCustom(feriadosCustom.filter((_, idx) => idx !== i))
   }
 
+  function toggleSemanaNoLectiva(numCal) {
+    setSemanasNoLectivas((prev) => {
+      const existe = prev.find((nl) => nl.semanaCalendario === numCal)
+      if (existe) return prev.filter((nl) => nl.semanaCalendario !== numCal)
+      return [...prev, { semanaCalendario: numCal, motivo: 'Semana santa' }].sort(
+        (a, b) => a.semanaCalendario - b.semanaCalendario
+      )
+    })
+  }
+
+  function actualizarMotivoNoLectiva(numCal, motivo) {
+    setSemanasNoLectivas((prev) =>
+      prev.map((nl) => (nl.semanaCalendario === numCal ? { ...nl, motivo } : nl))
+    )
+  }
+
   function handleSave() {
-    if (!materia || !fechaInicio || diasClase.length === 0) {
-      alert('Completa al menos: Materia, Fecha de inicio y al menos un día de clase.')
+    if (!materia || !fechaInicio || !fechaFin || diasClase.length === 0) {
+      alert('Completa al menos: Materia, Fecha de inicio, Fecha de fin y al menos un día de clase.')
       return
+    }
+    if (fechaFin <= fechaInicio) {
+      alert('La fecha de fin debe ser posterior a la fecha de inicio.')
+      return
+    }
+    if (semanasPed < 1) {
+      alert('Tu periodo no tiene semanas pedagógicas. Verifica las semanas no lectivas marcadas.')
+      return
+    }
+    if (semanasPed !== 8) {
+      const seguir = window.confirm(
+        `Atención · tu periodo tiene ${semanasPed} semana(s) pedagógica(s) en lugar de 8 (regla MAPS). ¿Quieres guardarlo así de todas formas?`
+      )
+      if (!seguir) return
     }
     const p = {
       materia,
       fechaInicio,
+      fechaFin,
       diasClase,
       hora,
       modalidadReto,
-      semanasReto: modalidadReto === 'B' ? semanasReto : [],
-      fasesReto: modalidadReto === 'B' ? fasesReto : {},
+      semanasReto: modalidadReto === 'B' || modalidadReto === 'A' ? semanasReto : [],
+      fasesReto: modalidadReto === 'B' || modalidadReto === 'A' ? fasesReto : {},
       feriadosMx: feriadosMxSeleccion,
       feriadosCustom,
+      semanasNoLectivas,
       clasesEditadas: periodo?.clasesEditadas || {},
     }
     onSave(p)
   }
 
+  // Construir lista de bloques de semana CALENDARIO (preview)
+  const bloquesPreview = []
+  for (let i = 1; i <= totalSemanasCal; i++) {
+    const ini = addDays(fechaInicio, (i - 1) * 7)
+    const fin = addDays(ini, 6)
+    const noLec = semanasNoLectivas.find((nl) => nl.semanaCalendario === i)
+    bloquesPreview.push({ numCal: i, ini, fin, noLectiva: noLec })
+  }
+
+  // Obtener el número pedagógico de cada bloque
+  let pedCount = 0
+  bloquesPreview.forEach((b) => {
+    if (!b.noLectiva) {
+      pedCount++
+      b.numPed = pedCount
+    } else {
+      b.numPed = null
+    }
+  })
+
   return (
     <div className="periodo-config">
       <h3>Configuración del periodo</h3>
       <p className="periodo-config-sub">
-        Estos datos se guardan en tu navegador. Toma 2 minutos. La semana 8 siempre se reserva para presentación final del reto.
+        Estos datos se guardan en tu navegador. El modelo MAPS pide 8 semanas pedagógicas.
+        Si tu periodo dura más en calendario porque hay semana santa u otra pausa,
+        marca esas semanas como no lectivas y el sistema las restará automáticamente.
       </p>
 
       <div className="row">
         <div className="field">
           <div className="field-label">Materia</div>
-          <input value={materia} onChange={(e) => setMateria(e.target.value)} placeholder="Ej. Innovación y emprendimiento" />
+          <input value={materia} onChange={(e) => setMateria(e.target.value)} placeholder="Ej. Base de datos" />
         </div>
         <div className="field">
           <div className="field-label">Hora (opcional)</div>
@@ -173,10 +236,32 @@ function PeriodoConfig({ periodo, onSave, onCancel }) {
         </div>
       </div>
 
-      <div className="field">
-        <div className="field-label">Fecha de inicio del periodo (semana 1, día 1)</div>
-        <input type="date" value={fechaInicio} onChange={(e) => setFechaInicio(e.target.value)} style={{ maxWidth: 220 }} />
-        <div className="field-hint">Las 8 semanas se calculan automáticamente desde aquí.</div>
+      <div className="row">
+        <div className="field">
+          <div className="field-label">Fecha de inicio del periodo</div>
+          <input type="date" value={fechaInicio} onChange={(e) => setFechaInicio(e.target.value)} />
+          <div className="field-hint">Primer día oficial de clases.</div>
+        </div>
+        <div className="field">
+          <div className="field-label">Fecha de fin del periodo</div>
+          <input type="date" value={fechaFin} onChange={(e) => setFechaFin(e.target.value)} />
+          <div className="field-hint">Último día oficial del periodo (incluye presentación final).</div>
+        </div>
+      </div>
+
+      {/* Resumen vivo */}
+      <div className={`periodo-resumen-vivo ${semanasPed === 8 ? 'ok' : 'warn'}`}>
+        <div className="prv-row">
+          <span><b>{totalSemanasCal}</b> semanas calendario</span>
+          <span>−</span>
+          <span><b>{semanasNoLectivas.length}</b> no lectivas</span>
+          <span>=</span>
+          <span className="prv-result">
+            <b>{semanasPed}</b> semanas pedagógicas
+            {semanasPed === 8 && <span className="prv-ok"> ✓</span>}
+            {semanasPed !== 8 && <span className="prv-warn"> ⚠ MAPS pide 8</span>}
+          </span>
+        </div>
       </div>
 
       <div className="field">
@@ -190,6 +275,50 @@ function PeriodoConfig({ periodo, onSave, onCancel }) {
         </div>
       </div>
 
+      {/* SEMANAS NO LECTIVAS · NUEVA SECCIÓN */}
+      <div className="field">
+        <div className="field-label">Semanas no lectivas (semana santa, evaluaciones, etc.)</div>
+        <div className="field-hint" style={{ marginBottom: 8 }}>
+          Marca las semanas calendario que NO cuentan como semana pedagógica. Aparecerán en gris en el calendario.
+        </div>
+        <div className="semanas-grid">
+          {bloquesPreview.map((b) => (
+            <button
+              key={b.numCal}
+              className={`semana-pill ${b.noLectiva ? 'no-lectiva' : ''}`}
+              onClick={() => toggleSemanaNoLectiva(b.numCal)}
+              type="button"
+              title={`Semana ${b.numCal} calendario${b.numPed ? ` · pedagógica ${b.numPed}` : ' · no lectiva'}`}
+            >
+              <span className="sp-cal">Sem {b.numCal}</span>
+              <span className="sp-fechas">{formatFechaCorta(b.ini)} – {formatFechaCorta(b.fin)}</span>
+              {b.noLectiva && <span className="sp-tag">No lectiva</span>}
+              {!b.noLectiva && <span className="sp-tag-ped">Ped. {b.numPed}</span>}
+            </button>
+          ))}
+        </div>
+        {semanasNoLectivas.length > 0 && (
+          <div className="motivos-list">
+            <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--tec-dark)', marginTop: 12, marginBottom: 6 }}>
+              Motivo de cada semana no lectiva
+            </div>
+            {semanasNoLectivas.map((nl) => (
+              <div key={nl.semanaCalendario} className="motivo-row">
+                <span style={{ minWidth: 90, fontWeight: 600, fontSize: 12, color: 'var(--tec-amber-dark)' }}>
+                  Sem {nl.semanaCalendario}:
+                </span>
+                <input
+                  style={{ fontSize: 12, flex: 1 }}
+                  value={nl.motivo}
+                  onChange={(e) => actualizarMotivoNoLectiva(nl.semanaCalendario, e.target.value)}
+                  placeholder="Ej. Semana santa · Evaluación institucional"
+                />
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
       <div className="field">
         <div className="field-label">Ritmo del reto</div>
         <div className="checkbox-row">
@@ -198,7 +327,7 @@ function PeriodoConfig({ periodo, onSave, onCancel }) {
           <button className={`checkbox-pill ${modalidadReto === 'C' ? 'on' : ''}`} onClick={() => setModalidadReto('C')}>C · Continuo cada semana</button>
         </div>
         <div className="field-hint">
-          {modalidadReto === 'A' && 'El reto se trabaja en una sola semana exclusiva (elige cuál abajo).'}
+          {modalidadReto === 'A' && 'El reto se trabaja en una sola semana exclusiva.'}
           {modalidadReto === 'B' && 'Marca qué semanas tienen fase del reto. Cada fase puede tener un nombre.'}
           {modalidadReto === 'C' && 'El reto se trabaja un poco cada semana. No se marcan semanas específicas.'}
         </div>
@@ -207,8 +336,11 @@ function PeriodoConfig({ periodo, onSave, onCancel }) {
       {(modalidadReto === 'A' || modalidadReto === 'B') && (
         <div className="field">
           <div className="field-label">{modalidadReto === 'A' ? 'Semana del reto (elige una)' : 'Semanas con fase del reto'}</div>
+          <div className="field-hint" style={{ marginBottom: 8 }}>
+            Numeración de semanas pedagógicas. La última semana siempre es presentación final.
+          </div>
           <div className="checkbox-row">
-            {[1, 2, 3, 4, 5, 6, 7].map((n) => {
+            {Array.from({ length: Math.max(0, semanasPed - 1) }, (_, idx) => idx + 1).map((n) => {
               const isOn = semanasReto.includes(n)
               return (
                 <button
@@ -223,21 +355,20 @@ function PeriodoConfig({ periodo, onSave, onCancel }) {
                     }
                   }}
                 >
-                  Semana {n}
+                  Sem ped. {n}
                 </button>
               )
             })}
           </div>
-          <div className="field-hint">La semana 8 siempre es presentación final, no la marques aquí.</div>
 
           {modalidadReto === 'B' && semanasReto.length > 0 && (
             <div style={{ marginTop: 10, background: 'var(--tec-cream)', padding: 12, borderRadius: 8 }}>
               <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--tec-dark)', marginBottom: 8 }}>Nombre de cada fase (opcional)</div>
               {semanasReto.map((n) => (
                 <div key={n} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-                  <span style={{ fontSize: 12, fontWeight: 600, minWidth: 80, color: 'var(--tec-amber-dark)' }}>Semana {n}:</span>
+                  <span style={{ fontSize: 12, fontWeight: 600, minWidth: 90, color: 'var(--tec-amber-dark)' }}>Sem ped. {n}:</span>
                   <input
-                    style={{ fontSize: 12 }}
+                    style={{ fontSize: 12, flex: 1 }}
                     value={fasesReto[n] || ''}
                     onChange={(e) => setFasesReto({ ...fasesReto, [n]: e.target.value })}
                     placeholder="Ej. Investigación · Prototipo · Validación"
@@ -251,13 +382,19 @@ function PeriodoConfig({ periodo, onSave, onCancel }) {
 
       <div className="field">
         <div className="field-label">Días feriados (México)</div>
-        <div style={{ background: 'var(--tec-gray-50)', padding: 10, borderRadius: 8, maxHeight: 160, overflowY: 'auto' }}>
-          {FERIADOS_MX.map((f) => (
-            <label key={f.fecha} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: 4, fontSize: 12, cursor: 'pointer' }}>
-              <input type="checkbox" checked={feriadosMxSeleccion.includes(f.fecha)} onChange={() => toggleFeriadoMx(f.fecha)} />
-              <span>{f.nombre} ({f.fecha})</span>
-            </label>
-          ))}
+        <div className="feriados-list">
+          {FERIADOS_MX.map((f) => {
+            const checked = feriadosMxSeleccion.includes(f.fecha)
+            return (
+              <label key={f.fecha} className={`feriado-row ${checked ? 'checked' : ''}`}>
+                <input type="checkbox" checked={checked} onChange={() => toggleFeriadoMx(f.fecha)} />
+                <span>
+                  <span className="feriado-nombre">{f.nombre}</span>
+                  <span className="feriado-fecha">({f.fecha})</span>
+                </span>
+              </label>
+            )
+          })}
         </div>
         <div className="field-hint">Solo se aplican los que caen dentro de tu periodo.</div>
       </div>
@@ -298,83 +435,73 @@ function PeriodoConfig({ periodo, onSave, onCancel }) {
 }
 
 // ============================================================
-// SUMMARY · barra superior cuando ya hay periodo
+// SUMMARY · cuando ya hay periodo guardado
 // ============================================================
 function PeriodoSummary({ periodo, onEdit }) {
-  const fin = addDays(periodo.fechaInicio, 7 * 8 - 1)
+  const semanasPed = contarSemanasPedagogicas(periodo)
+  const totalCal = calcularSemanasCalendario(periodo.fechaInicio, periodo.fechaFin)
   const modalidadDesc = periodo.modalidadReto === 'A' ? 'Reto en una semana' : periodo.modalidadReto === 'B' ? 'Reto en fases' : 'Reto continuo'
 
   return (
     <div className="periodo-summary">
       <div className="ps-item"><b>{periodo.materia}</b></div>
-      <div className="ps-item">{formatFechaCorta(periodo.fechaInicio)} → {formatFechaCorta(fin)}</div>
+      <div className="ps-item">{formatFechaCorta(periodo.fechaInicio)} → {formatFechaCorta(periodo.fechaFin)}</div>
       <div className="ps-item">{periodo.diasClase.join(' · ')}</div>
       {periodo.hora && <div className="ps-item">{periodo.hora}</div>}
       <div className="ps-item">{modalidadDesc}</div>
+      <div className="ps-item"><b>{semanasPed}</b> sem ped. de {totalCal} cal.</div>
       <button className="periodo-edit-btn" onClick={onEdit}><Icon.Edit size={11} /> Editar</button>
     </div>
   )
 }
 
 // ============================================================
-// CALENDARIO · 8 semanas
+// CALENDARIO · usa los bloques calculados
 // ============================================================
 function Calendario({ periodo, onDayClick, diaSeleccionado, onUpdate, onPlanearClase, onCloseEdit }) {
-  // Generar lista de fechas para todo el periodo (56 días)
-  const todasLasFechas = []
-  for (let i = 0; i < 56; i++) {
-    todasLasFechas.push(addDays(periodo.fechaInicio, i))
-  }
+  const bloques = getBloquesSemanasPeriodo(periodo)
+  const totalPed = bloques.filter((b) => !b.esNoLectiva).length
 
-  // Construir lista de feriados aplicables (los que caen dentro del periodo)
+  // Feriados aplicables
   const año1 = isoToDate(periodo.fechaInicio).getFullYear()
   const año2 = año1 + 1
   const feriadosSet = {}
-  // Feriados MX seleccionados (probar año actual y siguiente)
-  const feriadosMxSel = periodo.feriadosMx || []
-  feriadosMxSel.forEach((mmdd) => {
+  ;(periodo.feriadosMx || []).forEach((mmdd) => {
     [`${año1}-${mmdd}`, `${año2}-${mmdd}`].forEach((iso) => {
-      if (todasLasFechas.includes(iso)) {
+      const enRango = bloques.some((b) => iso >= b.fechaInicio && iso <= b.fechaFin)
+      if (enRango) {
         const nombre = FERIADOS_MX.find((f) => f.fecha === mmdd)?.nombre || 'Feriado'
         feriadosSet[iso] = nombre
       }
     })
   })
-  // Feriados custom
   ;(periodo.feriadosCustom || []).forEach((f) => {
-    if (todasLasFechas.includes(f.fecha)) feriadosSet[f.fecha] = f.nombre
+    const enRango = bloques.some((b) => f.fecha >= b.fechaInicio && f.fecha <= b.fechaFin)
+    if (enRango) feriadosSet[f.fecha] = f.nombre
   })
 
-  // Dividir en 8 semanas de 7 días
-  const semanas = []
-  for (let s = 0; s < 8; s++) {
-    semanas.push(todasLasFechas.slice(s * 7, s * 7 + 7))
-  }
-
-  // Filtrar solo días de clase configurados
   const diasClaseSet = new Set(periodo.diasClase)
   const todayIso = dateToIso(new Date())
 
-  function getEstadoDia(iso, semanaNum) {
-    // Semana 8 = presentación
-    if (semanaNum === 8) return { tipo: 'presentacion' }
-
+  function getEstadoDia(iso, bloque) {
+    // Semana no lectiva
+    if (bloque.esNoLectiva) return { tipo: 'no-lectiva', motivo: bloque.motivo }
+    // Semana 8 pedagógica = presentación
+    if (bloque.numPedagogica === totalPed) return { tipo: 'presentacion' }
     // Feriado
     if (feriadosSet[iso]) return { tipo: 'feriado', nombre: feriadosSet[iso] }
-
-    // Día NO de clase configurado
+    // Día NO de clase
     const dow = diaSemanaCorto(iso)
     if (!diasClaseSet.has(dow)) return { tipo: 'no-clase' }
-
-    // Datos editados por el docente
+    // Editado
     const editado = periodo.clasesEditadas?.[iso]
     if (editado?.cancelada) return { tipo: 'cancelada', motivo: editado.motivoCancel, ...editado }
 
-    // Si es semana del reto (modalidad A o B)
-    const esSemanaReto = (periodo.semanasReto || []).includes(semanaNum)
-    const faseRetoNombre = periodo.fasesReto?.[semanaNum]
+    // Semana del reto (modalidad A o B en sem ped.)
+    const numPed = bloque.numPedagogica
+    const esSemanaReto = (periodo.semanasReto || []).includes(numPed)
+    const faseRetoNombre = periodo.fasesReto?.[numPed]
 
-    // Es de hoy o pasó
     let estado = 'plan'
     if (iso === todayIso) estado = 'today'
     else if (iso < todayIso) estado = 'done'
@@ -392,28 +519,55 @@ function Calendario({ periodo, onDayClick, diaSeleccionado, onUpdate, onPlanearC
 
   return (
     <div className="calendario">
-      {semanas.map((dias, idx) => {
-        const semanaNum = idx + 1
-        const esSemanaReto = (periodo.semanasReto || []).includes(semanaNum)
+      {bloques.map((bloque) => {
+        const numCal = bloque.numCalendario
+        const numPed = bloque.numPedagogica
+        const esNoLectiva = bloque.esNoLectiva
+        const esSemanaReto = !esNoLectiva && numPed && (periodo.semanasReto || []).includes(numPed)
         const fasesReto = periodo.fasesReto || {}
-        const esPresentacion = semanaNum === 8
-        const fechaInicio = formatFechaCorta(dias[0])
-        const fechaFin = formatFechaCorta(dias[6])
+        const esPresentacion = !esNoLectiva && numPed === totalPed
+
+        // Generar 7 días del bloque
+        const dias = []
+        for (let i = 0; i < 7; i++) dias.push(addDays(bloque.fechaInicio, i))
+
+        // Label de la semana
+        let labelClass = 'calendario-week-label'
+        if (esSemanaReto) labelClass += ' reto'
+        if (esPresentacion) labelClass += ' presentacion'
+        if (esNoLectiva) labelClass += ' no-lectiva'
 
         return (
-          <div className="calendario-week" key={semanaNum}>
-            <div className={`calendario-week-label ${esSemanaReto ? 'reto' : ''} ${esPresentacion ? 'presentacion' : ''}`}>
-              <b>Semana {semanaNum}</b>
-              <span className="week-fechas">{fechaInicio} – {fechaFin}</span>
-              {esSemanaReto && <span className="reto-tag">{fasesReto[semanaNum] || 'Reto'}</span>}
-              {esPresentacion && <span className="reto-tag">Presentación</span>}
+          <div className="calendario-week" key={numCal}>
+            <div className={labelClass}>
+              {esNoLectiva ? (
+                <>
+                  <b>Sem cal. {numCal}</b>
+                  <span className="week-fechas">{formatFechaCorta(bloque.fechaInicio)} – {formatFechaCorta(bloque.fechaFin)}</span>
+                  <span className="reto-tag" style={{ color: '#888' }}>{bloque.motivo}</span>
+                </>
+              ) : (
+                <>
+                  <b>Sem ped. {numPed}</b>
+                  <span className="week-fechas">{formatFechaCorta(bloque.fechaInicio)} – {formatFechaCorta(bloque.fechaFin)}</span>
+                  {esSemanaReto && <span className="reto-tag">{fasesReto[numPed] || 'Reto'}</span>}
+                  {esPresentacion && <span className="reto-tag">Presentación</span>}
+                </>
+              )}
             </div>
             <div className="calendario-days">
-              {/* Solo mostrar los 5 primeros días (lun-vie) por simplicidad */}
               {dias.slice(0, 5).map((iso) => {
-                const estado = getEstadoDia(iso, semanaNum)
+                const estado = getEstadoDia(iso, bloque)
+                if (estado.tipo === 'no-lectiva') {
+                  return (
+                    <div key={iso} className="day-card cancelada" style={{ opacity: 0.5, cursor: 'default' }}>
+                      <div className="day-dia">{diaSemanaCorto(iso)}</div>
+                      <div className="day-num">{isoToDate(iso).getDate()}</div>
+                      <div className="day-topic" style={{ fontSize: 10 }}>{estado.motivo}</div>
+                    </div>
+                  )
+                }
                 if (estado.tipo === 'no-clase') {
-                  // Mostrar como muted
                   return (
                     <div key={iso} className="day-card" style={{ opacity: 0.4, cursor: 'default', background: '#fafaf6' }}>
                       <div className="day-dia">{diaSemanaCorto(iso)}</div>
@@ -477,7 +631,7 @@ function Calendario({ periodo, onDayClick, diaSeleccionado, onUpdate, onPlanearC
         <div className="cl-leg"><span className="sq" style={{ background: '#f5f1e5', borderColor: '#e8dec7' }}></span>Por planear</div>
         <div className="cl-leg"><span className="sq" style={{ background: 'white', borderColor: '#BA7517' }}></span>Reto</div>
         <div className="cl-leg"><span className="sq" style={{ background: '#FCEBEB', borderColor: '#F09595' }}></span>Feriado</div>
-        <div className="cl-leg"><span className="sq" style={{ background: '#eef0f3', borderColor: '#c8cdd4' }}></span>Cancelada</div>
+        <div className="cl-leg"><span className="sq" style={{ background: '#eef0f3', borderColor: '#c8cdd4' }}></span>No lectiva / Cancelada</div>
         <div className="cl-leg"><span className="sq" style={{ background: '#E6F1FB', borderColor: '#85B7EB' }}></span>Presentación final</div>
       </div>
 
@@ -498,7 +652,7 @@ function Calendario({ periodo, onDayClick, diaSeleccionado, onUpdate, onPlanearC
 }
 
 // ============================================================
-// EDITAR DÍA · panel inline
+// EDITAR DÍA · sin cambios respecto a v4
 // ============================================================
 function DayEditPanel({ fechaISO, datos, onSave, onCancel, onPlanear }) {
   const [tema, setTema] = useState(datos.tema || '')

@@ -100,26 +100,36 @@ export function saveProfile(profile) {
 }
 
 // ============================================================
-// MI PERIODO (calendario · 8 semanas con feriados y reto)
+// MI PERIODO (calendario · 8 semanas pedagógicas con feriados,
+// semanas no lectivas y reto)
 // ============================================================
 
 // modalidad: 'A' = una sola semana del reto, 'B' = fases distribuidas, 'C' = continuo
+//
+// MODO DE CÁLCULO DE SEMANAS:
+// Las semanas pedagógicas son SIEMPRE 8 (regla del modelo MAPS).
+// El calendario REAL puede ser más largo si hay semanas no lectivas
+// (ej. semana santa). Esas semanas se restan del cálculo pedagógico.
+//
+// Ejemplo: periodo del 16 mar al 15 may = 9 semanas calendario.
+// Si la semana del 30 mar es semana santa (no lectiva) → 8 semanas pedagógicas.
+//
 // estructura del periodo:
 // {
-//   materia: 'Innovación y emprendimiento',
-//   fechaInicio: '2026-04-25',  // YYYY-MM-DD del primer lunes
+//   materia: 'Base de datos',
+//   fechaInicio: '2026-03-16',  // YYYY-MM-DD primer día oficial
+//   fechaFin: '2026-05-15',     // YYYY-MM-DD último día oficial (NUEVO)
 //   diasClase: ['Lun','Mar','Mié','Jue','Vie'],
 //   hora: '9:00 - 11:00',
-//   modalidadReto: 'B',  // A, B, C
-//   semanasReto: [2, 4, 6],  // si modalidad B, qué semanas tienen fase del reto
-//   fasesReto: { 2: 'Investigación', 4: 'Prototipo', 6: 'Validación' },
-//   feriados: [
-//     { fecha: '2026-05-01', nombre: 'Día del Trabajo' },
-//     { fecha: '2026-05-05', nombre: 'Batalla de Puebla' }
+//   modalidadReto: 'B',
+//   semanasReto: [2, 4, 6],          // numeradas en semanas PEDAGÓGICAS
+//   fasesReto: { 2: 'Investigación' },
+//   feriadosMx: ['05-01', '05-05'],  // mm-dd seleccionados
+//   feriadosCustom: [{fecha:'2026-05-10', nombre:'Junta'}],
+//   semanasNoLectivas: [              // NUEVO · semanas calendario que se saltan
+//     { semanaCalendario: 3, motivo: 'Semana Santa' }
 //   ],
-//   clasesEditadas: {
-//     '2026-04-23': { tema: 'Empatizar con usuarios', estado: 'today', cancelada: false }
-//   }
+//   clasesEditadas: { ... }
 // }
 
 export function getPeriodo() {
@@ -136,6 +146,71 @@ export function updateClasePeriodo(fechaISO, updates) {
   if (!p.clasesEditadas) p.clasesEditadas = {}
   p.clasesEditadas[fechaISO] = { ...(p.clasesEditadas[fechaISO] || {}), ...updates }
   savePeriodo(p)
+}
+
+// ============================================================
+// LÓGICA DE CÁLCULO DE SEMANAS PEDAGÓGICAS
+// ============================================================
+
+// Calcula cuántas semanas calendario hay entre fechaInicio y fechaFin
+// (ambas inclusive). Si no se da fechaFin, asume 8 semanas (legacy).
+export function calcularSemanasCalendario(fechaInicio, fechaFin) {
+  if (!fechaFin) return 8
+  const inicio = isoToDate(fechaInicio)
+  const fin = isoToDate(fechaFin)
+  const diffMs = fin - inicio
+  const diffDias = Math.floor(diffMs / (1000 * 60 * 60 * 24)) + 1 // inclusive
+  return Math.ceil(diffDias / 7)
+}
+
+// Devuelve la lista de "bloques de semana" del periodo.
+// Cada bloque tiene: numCalendario (1..N), numPedagogica (1..8 o null si no lectiva),
+// fechaInicio, fechaFin, esNoLectiva, motivo (si aplica).
+// Esta función es el corazón de toda la vista del calendario.
+export function getBloquesSemanasPeriodo(periodo) {
+  if (!periodo || !periodo.fechaInicio) return []
+  const totalCal = calcularSemanasCalendario(periodo.fechaInicio, periodo.fechaFin)
+  const noLectivas = periodo.semanasNoLectivas || []
+  const noLectivasMap = {}
+  noLectivas.forEach((nl) => { noLectivasMap[nl.semanaCalendario] = nl.motivo || 'Semana no lectiva' })
+
+  const bloques = []
+  let pedCounter = 0
+  for (let i = 1; i <= totalCal; i++) {
+    const inicio = addDays(periodo.fechaInicio, (i - 1) * 7)
+    const fin = addDays(inicio, 6)
+    const esNoLectiva = !!noLectivasMap[i]
+    let numPedagogica = null
+    if (!esNoLectiva) {
+      pedCounter++
+      numPedagogica = pedCounter
+    }
+    bloques.push({
+      numCalendario: i,
+      numPedagogica,
+      fechaInicio: inicio,
+      fechaFin: fin,
+      esNoLectiva,
+      motivo: esNoLectiva ? noLectivasMap[i] : null,
+    })
+  }
+  return bloques
+}
+
+// Para un día específico (ISO), devuelve a qué bloque pertenece.
+export function getBloqueDeFecha(periodo, fechaISO) {
+  const bloques = getBloquesSemanasPeriodo(periodo)
+  for (const b of bloques) {
+    if (fechaISO >= b.fechaInicio && fechaISO <= b.fechaFin) return b
+  }
+  return null
+}
+
+// Cuenta cuántas semanas pedagógicas hay configuradas (sin contar no lectivas).
+export function contarSemanasPedagogicas(periodo) {
+  if (!periodo) return 0
+  const bloques = getBloquesSemanasPeriodo(periodo)
+  return bloques.filter((b) => !b.esNoLectiva).length
 }
 
 // ============================================================

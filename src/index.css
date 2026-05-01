@@ -538,7 +538,7 @@ button:active { transform: scale(0.98); }
   border: 5px solid transparent;
   border-top-color: var(--tec-dark);
 }
-.field input, .field textarea, .field select {
+.field input:not([type="checkbox"]):not([type="radio"]), .field textarea, .field select {
   width: 100%;
   padding: 9px 12px;
   border: 1px solid var(--tec-gray-200);
@@ -1459,6 +1459,198 @@ button:active { transform: scale(0.98); }
 .calendario-week-label.presentacion { background: #E6F1FB; border: 1px solid #85B7EB; }
 .calendario-week-label.presentacion b { color: #185FA5; }
 .calendario-week-label.presentacion .reto-tag { color: #185FA5; font-weight: 700; font-size: 10px; margin-top: 2px; text-transform: uppercase; letter-spacing: 0.4px; }
+
+.calendario-week-label.no-lectiva {
+  background: var(--tec-gray-100);
+  border: 1px solid var(--tec-gray-300);
+  opacity: 0.85;
+}
+.calendario-week-label.no-lectiva b { color: var(--tec-gray-700); }
+.calendario-week-label.no-lectiva .reto-tag {
+  color: var(--tec-gray-600);
+  font-weight: 600;
+  font-size: 10px;
+  margin-top: 2px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  font-style: italic;
+}
+
+/* ============================================================
+   PERIODO · resumen vivo del cálculo de semanas
+============================================================ */
+.periodo-resumen-vivo {
+  margin: 14px 0;
+  padding: 12px 16px;
+  border-radius: 10px;
+  background: var(--tec-gray-50);
+  border: 1px solid var(--tec-gray-200);
+}
+.periodo-resumen-vivo.ok {
+  background: var(--tec-green-50);
+  border-color: var(--tec-green-light);
+}
+.periodo-resumen-vivo.warn {
+  background: var(--tec-amber-light);
+  border-color: var(--tec-amber-mid);
+}
+.periodo-resumen-vivo .prv-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  font-size: 13px;
+  color: var(--tec-gray-800);
+}
+.periodo-resumen-vivo .prv-row b {
+  color: var(--tec-dark);
+  font-size: 16px;
+  font-weight: 700;
+}
+.periodo-resumen-vivo .prv-result {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.periodo-resumen-vivo .prv-ok {
+  color: #0F6E56;
+  font-weight: 700;
+}
+.periodo-resumen-vivo .prv-warn {
+  color: var(--tec-amber-dark);
+  font-weight: 600;
+  font-size: 11px;
+}
+
+/* ============================================================
+   PERIODO · grid de semanas para marcar no lectivas
+============================================================ */
+.semanas-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 8px;
+  margin-top: 4px;
+}
+.semana-pill {
+  background: white;
+  border: 1.5px solid var(--tec-gray-200);
+  border-radius: 10px;
+  padding: 9px 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  cursor: pointer;
+  font-family: inherit;
+  text-align: left;
+  transition: border-color 0.15s, background 0.15s, transform 0.1s;
+}
+.semana-pill:hover {
+  border-color: var(--tec-green);
+  background: var(--tec-gray-50);
+}
+.semana-pill:active { transform: scale(0.98); }
+.semana-pill.no-lectiva {
+  background: var(--tec-gray-100);
+  border-color: var(--tec-gray-300);
+  opacity: 0.92;
+}
+.semana-pill .sp-cal {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--tec-dark);
+}
+.semana-pill.no-lectiva .sp-cal {
+  color: var(--tec-gray-700);
+  text-decoration: line-through;
+}
+.semana-pill .sp-fechas {
+  font-size: 10px;
+  color: var(--tec-gray-600);
+}
+.semana-pill .sp-tag {
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--tec-gray-700);
+  background: var(--tec-gray-200);
+  padding: 1px 6px;
+  border-radius: 6px;
+  margin-top: 2px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+.semana-pill .sp-tag-ped {
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--tec-green);
+  background: var(--tec-green-50);
+  padding: 1px 6px;
+  border-radius: 6px;
+  margin-top: 2px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+/* ============================================================
+   PERIODO · lista de motivos para semanas no lectivas
+============================================================ */
+.motivos-list {
+  background: var(--tec-cream);
+  padding: 10px 12px;
+  border-radius: 8px;
+  margin-top: 8px;
+}
+.motivo-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+.motivo-row:last-child { margin-bottom: 0; }
+
+/* ============================================================
+   FERIADOS · listado con palomita verde y filas alternadas
+============================================================ */
+.feriados-list {
+  background: var(--tec-gray-50);
+  padding: 6px;
+  border-radius: 8px;
+  max-height: 180px;
+  overflow-y: auto;
+  border: 1px solid var(--tec-gray-200);
+}
+.feriado-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 10px;
+  font-size: 12.5px;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: background 0.12s;
+  user-select: none;
+}
+.feriado-row:hover { background: white; }
+.feriado-row + .feriado-row { margin-top: 2px; }
+.feriado-row input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  flex-shrink: 0;
+  accent-color: var(--tec-green);
+  cursor: pointer;
+}
+.feriado-row .feriado-nombre {
+  color: var(--tec-dark);
+  font-weight: 500;
+}
+.feriado-row .feriado-fecha {
+  color: var(--tec-gray-600);
+  font-weight: 400;
+  margin-left: 4px;
+}
+.feriado-row.checked .feriado-nombre { font-weight: 600; }
 .calendario-days {
   display: grid;
   grid-template-columns: repeat(5, 1fr);

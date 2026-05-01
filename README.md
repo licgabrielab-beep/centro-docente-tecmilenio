@@ -6,11 +6,31 @@ App web con **8 herramientas** para docentes profesionales Tecmilenio basadas en
 
 **URL pública:** https://centro-docente-tecmilenio.vercel.app
 **GitHub:** https://github.com/licgabrielab-beep/centro-docente-tecmilenio
-**Versión:** 4.0.0 (beta)
+**Versión:** 4.1.0 (beta)
 
 ---
 
-## Cambios en v4 (changelog para los docentes)
+## Cambios en v4.1 (refinamiento de calendario)
+
+**Mi periodo · ahora con fecha de fin y semanas no lectivas.** Se identificó que el modelo MAPS pide 8 semanas pedagógicas inamovibles, pero el calendario real puede ser más largo si hay semana santa u otra pausa institucional. La nueva versión:
+
+- Captura **fecha de inicio Y fecha de fin** del periodo (en lugar de calcular automáticamente 8 semanas).
+- Permite **marcar semanas no lectivas** (semana santa, evaluaciones institucionales, etc.) con motivo personalizable.
+- Calcula automáticamente: semanas calendario - semanas no lectivas = semanas pedagógicas.
+- Muestra resumen en vivo: "9 semanas calendario - 1 no lectiva = 8 semanas pedagógicas ✓"
+- Si el cálculo no da 8 semanas, el sistema avisa pero permite guardar (algunos casos pueden requerir ajuste).
+- En el calendario visual, las semanas no lectivas aparecen en gris claro con su motivo.
+- La numeración de semanas pedagógicas se salta automáticamente las semanas no lectivas.
+- La semana de presentación final es siempre la última semana pedagógica.
+
+**Ejemplo real (Mód. 2 actual):**
+- Inicio: 16 de marzo · Fin: 15 de mayo = 9 semanas calendario.
+- Semana 3 (30 mar - 5 abr) marcada como semana santa (no lectiva).
+- Resultado: 8 semanas pedagógicas distribuidas correctamente.
+
+---
+
+## Cambios en v4.0 (changelog para los docentes)
 
 **Renombre de la app:** TeacherHub → **Aula CLARA**.
 
@@ -133,6 +153,7 @@ Todas las llamadas IA usan `claude-haiku-4-5-20251001`. Cada generación cuesta 
 
 ## Backlog para fase 2 (no incluido en v4)
 
+- **Cruce con certificación** ⭐ priorizado · para materias con doble currículum (Cisco, AWS, Scrum, Six Sigma, Google). Permite cargar el contenido del certificado externo + el contenido de Canvas y la IA hace una comparación semántica que clasifica los temas en: iguales (ahorra tiempo), similares con enfoque distinto (aclarar matices), únicos del certificado (profundizar extra), únicos de Canvas (no cubiertos por certificado). Salida con sugerencia de calendarización por semana pedagógica. Aplicable solo a materias marcadas como "con certificación" en Mi Periodo.
 - Migrar a Supabase para soporte real de 50+ docentes con cuentas individuales
 - "Mis materias" institucionales (catálogo central con certificaciones y temarios)
 - Banner Generator para Canvas (imágenes de anuncios)
