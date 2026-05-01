@@ -135,7 +135,20 @@ export function saveProfile(profile) {
 // }
 
 export function getPeriodo() {
-  return safeLoad(KEYS.PERIODO, null)
+  const stored = safeLoad(KEYS.PERIODO, null)
+  if (!stored) return null
+  // Defensivo · si el periodo guardado tiene estructura vieja o incompleta,
+  // garantizamos los campos mínimos para que el código nuevo no reviente.
+  return {
+    ...stored,
+    fechaInicio: stored.fechaInicio || null,
+    fechaFin: stored.fechaFin || null,
+    semanasNoLectivas: Array.isArray(stored.semanasNoLectivas) ? stored.semanasNoLectivas : [],
+    diasClase: Array.isArray(stored.diasClase) ? stored.diasClase : [],
+    feriadosMx: Array.isArray(stored.feriadosMx) ? stored.feriadosMx : [],
+    feriadosCustom: Array.isArray(stored.feriadosCustom) ? stored.feriadosCustom : [],
+    clasesEditadas: stored.clasesEditadas || {},
+  }
 }
 
 export function savePeriodo(periodo) {
@@ -157,12 +170,19 @@ export function updateClasePeriodo(fechaISO, updates) {
 // Calcula cuántas semanas calendario hay entre fechaInicio y fechaFin
 // (ambas inclusive). Si no se da fechaFin, asume 8 semanas (legacy).
 export function calcularSemanasCalendario(fechaInicio, fechaFin) {
+  if (!fechaInicio) return 0
   if (!fechaFin) return 8
-  const inicio = isoToDate(fechaInicio)
-  const fin = isoToDate(fechaFin)
-  const diffMs = fin - inicio
-  const diffDias = Math.floor(diffMs / (1000 * 60 * 60 * 24)) + 1 // inclusive
-  return Math.ceil(diffDias / 7)
+  try {
+    const inicio = isoToDate(fechaInicio)
+    const fin = isoToDate(fechaFin)
+    if (!inicio || !fin || isNaN(inicio.getTime()) || isNaN(fin.getTime())) return 8
+    const diffMs = fin - inicio
+    const diffDias = Math.floor(diffMs / (1000 * 60 * 60 * 24)) + 1 // inclusive
+    const semanas = Math.ceil(diffDias / 7)
+    return semanas > 0 ? semanas : 8
+  } catch (e) {
+    return 8
+  }
 }
 
 // Devuelve la lista de "bloques de semana" del periodo.
