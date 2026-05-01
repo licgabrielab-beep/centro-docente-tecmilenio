@@ -89,10 +89,12 @@ export function getLessonStatus(lessonId) {
 // ============================================================
 
 export function getProfile() {
-  return safeLoad(KEYS.PROFILE, {
-    nombre: 'Docente',
-    cantidad: 30,
-  })
+  const stored = safeLoad(KEYS.PROFILE, null)
+  // Defensivo: si nunca se guardó o si lo guardado es incompleto, devolvemos defaults
+  return {
+    nombre: (stored && stored.nombre) ? stored.nombre : 'Docente',
+    cantidad: (stored && stored.cantidad) ? stored.cantidad : 30,
+  }
 }
 
 export function saveProfile(profile) {

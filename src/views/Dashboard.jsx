@@ -94,7 +94,7 @@ export default function Dashboard({ onOpenTool, onOpenPeriodo, onOpenClass }) {
           </p>
         </div>
         <div className="profile-chip">
-          <div className="profile-avatar">{profile.nombre.split(' ').map(s => s[0]).join('').slice(0, 2).toUpperCase()}</div>
+          <div className="profile-avatar">{(profile.nombre || 'Docente').split(' ').map(s => s[0]).join('').slice(0, 2).toUpperCase()}</div>
           <div>
             <div className="profile-name">{profile.nombre}</div>
             <div className="profile-role">{periodo?.materia || 'Configura tu periodo'} · {profile.cantidad} est.</div>
