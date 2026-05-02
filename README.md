@@ -161,3 +161,19 @@ Todas las llamadas IA usan `claude-haiku-4-5-20251001`. Cada generación cuesta 
 - Biblioteca curada de tutoriales
 - Etapa 2 del calendario (auto-reagendado al cancelar, comprimir contenido con IA)
 - Modo institucional para líder docente (estadísticas agregadas anónimas)
+
+---
+
+## 📄 Derechos de autor y licencia
+
+**Copyright © 2026 Gabriela B. (lic.gabrielab@gmail.com) · Todos los derechos reservados.**
+
+Aula CLARA fue diseñada y desarrollada originalmente por Gabriela B., líder docente de Universidad Tecmilenio, como herramienta de apoyo al cuerpo docente de la institución. La autoría original queda documentada con fecha cierta en el historial de commits de este repositorio.
+
+Este software integra elementos institucionales de Universidad Tecmilenio (modelo CLARA, modelo MAPS, acróstico REFEREENTE, paleta visual) que son propiedad de la institución y se utilizan exclusivamente para fines educativos.
+
+Sin autorización previa y por escrito de la autora original y de Universidad Tecmilenio, queda prohibida la copia, redistribución, modificación o comercialización total o parcial del software o sus componentes.
+
+Para condiciones detalladas consulta el archivo [LICENSE.txt](./LICENSE.txt).
+
+Para licencias, autorizaciones o colaboraciones: lic.gabrielab@gmail.com

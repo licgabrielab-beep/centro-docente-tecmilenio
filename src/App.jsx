@@ -174,6 +174,12 @@ function Sidebar({ view, activeTool, onNav, onTool }) {
         <div className="sidebar-label">Mis cosas</div>
         {mk('guardados', 'Guardados', <Icon.Save size={15} />)}
       </div>
+
+      <div className="sidebar-copyright">
+        <div>© 2026 Gabriela B.</div>
+        <div className="sidebar-copyright-sub">Aula CLARA · Tecmilenio</div>
+        <div className="sidebar-copyright-sub">Uso institucional. Todos los derechos reservados.</div>
+      </div>
     </aside>
   )
 }

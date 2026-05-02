@@ -1,0 +1,107 @@
+================================================================================
+  AULA CLARA · CENTRO DOCENTE TECMILENIO
+  Aviso de derechos de autor y condiciones de uso
+================================================================================
+
+Copyright © 2026 Gabriela B. (lic.gabrielab@gmail.com)
+Todos los derechos reservados.
+
+--------------------------------------------------------------------------------
+  AUTORÍA ORIGINAL
+--------------------------------------------------------------------------------
+
+Este software, incluyendo su código fuente, interfaces de usuario, textos,
+estructura pedagógica, diseño visual y herramientas integradas, fue diseñado
+y desarrollado originalmente por Gabriela B., líder docente de Universidad
+Tecmilenio, como herramienta de apoyo al cuerpo docente de la institución.
+
+La autoría original queda documentada de manera pública y con fecha cierta
+en el historial de commits del repositorio:
+
+   https://github.com/licgabrielab-beep/centro-docente-tecmilenio
+
+Los derechos morales sobre esta obra (reconocimiento de autoría e integridad)
+son irrenunciables conforme a la Ley Federal del Derecho de Autor de México
+(artículo 19), independientemente de cualquier acuerdo de titularidad
+patrimonial que se establezca posteriormente.
+
+--------------------------------------------------------------------------------
+  ELEMENTOS INSTITUCIONALES TECMILENIO
+--------------------------------------------------------------------------------
+
+Esta obra hace uso e integra los siguientes elementos cuya titularidad
+pertenece a Universidad Tecmilenio y que se utilizan exclusivamente para
+fines educativos institucionales:
+
+  - Modelo pedagógico CLARA (Contextualizar · Llevar a la práctica ·
+    Activar el diálogo · Retroalimentar · Anclar el propósito)
+  - Modelo educativo MAPS (Modular · Apilable · Personalizable)
+  - Acróstico REFEREENTE del docente Tecmilenio
+  - Tres pilares de la enseñanza Tecmilenio
+  - Identidad visual y paleta cromática institucional
+  - Estándares del servicio docente Tecmilenio
+
+Estos elementos son propiedad de Universidad Tecmilenio y su uso en este
+software se hace en el contexto de un proyecto institucional dirigido a la
+formación docente.
+
+--------------------------------------------------------------------------------
+  CONDICIONES DE USO
+--------------------------------------------------------------------------------
+
+1. USO PERMITIDO
+   Esta aplicación está destinada al uso interno y no comercial por parte de
+   docentes y personal académico de Universidad Tecmilenio en el ejercicio
+   de sus labores formativas.
+
+2. PROHIBICIONES EXPRESAS
+   Sin autorización previa y por escrito de la autora original y de
+   Universidad Tecmilenio, queda prohibido:
+   
+   a) Copiar, reproducir o redistribuir el código fuente o sus interfaces
+      total o parcialmente.
+   b) Modificar, adaptar o crear obras derivadas.
+   c) Comercializar el software o cualquiera de sus componentes.
+   d) Eliminar, alterar u ocultar los avisos de autoría y copyright.
+   e) Utilizar el software para fines distintos a la formación docente
+      Tecmilenio.
+   f) Realizar ingeniería inversa con fines de replicación.
+
+3. PROPIEDAD INTELECTUAL DE TERCEROS
+   El software hace uso de bibliotecas y herramientas de código abierto
+   (React, Vite, etc.) que mantienen sus respectivas licencias originales.
+   El servicio de inteligencia artificial es provisto por Anthropic
+   (modelo Claude) bajo sus propios términos de uso comercial.
+
+--------------------------------------------------------------------------------
+  EVOLUCIÓN Y FORMALIZACIÓN
+--------------------------------------------------------------------------------
+
+Este aviso refleja el estado del proyecto al momento de su publicación
+inicial y queda sujeto a la formalización de un acuerdo de propiedad
+intelectual entre la autora original y Universidad Tecmilenio. Cualquier
+modificación a estos términos requiere acuerdo escrito entre las partes.
+
+--------------------------------------------------------------------------------
+  GARANTÍA Y RESPONSABILIDAD
+--------------------------------------------------------------------------------
+
+EL SOFTWARE SE PROPORCIONA "TAL CUAL", SIN GARANTÍA DE NINGÚN TIPO,
+EXPRESA O IMPLÍCITA. EN NINGÚN CASO LA AUTORA O LOS TITULARES SERÁN
+RESPONSABLES POR DAÑOS DERIVADOS DEL USO O LA IMPOSIBILIDAD DE USO
+DEL SOFTWARE.
+
+--------------------------------------------------------------------------------
+  CONTACTO
+--------------------------------------------------------------------------------
+
+Para licencias, autorizaciones de uso, colaboraciones o cualquier consulta
+relacionada con propiedad intelectual de esta obra:
+
+   Autora original: Gabriela B.
+   Correo: lic.gabrielab@gmail.com
+   Repositorio: https://github.com/licgabrielab-beep/centro-docente-tecmilenio
+
+================================================================================
+  Documento generado el 1 de mayo de 2026 · Versión Aula CLARA 4.1.2
+================================================================================

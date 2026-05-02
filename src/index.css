@@ -65,11 +65,13 @@ button:active { transform: scale(0.98); }
 .sidebar {
   background: var(--tec-dark);
   color: white;
-  padding: 22px 0 100px;
+  padding: 22px 0 16px;
   position: sticky;
   top: 0;
   height: 100vh;
   overflow-y: auto;
+  display: flex;
+  flex-direction: column;
 }
 .sidebar-logo {
   padding: 0 20px 18px;
@@ -100,6 +102,25 @@ button:active { transform: scale(0.98); }
   letter-spacing: 0.5px;
 }
 .sidebar-group { padding-top: 14px; }
+
+.sidebar-copyright {
+  margin-top: auto;
+  padding: 14px 18px 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 9.5px;
+  color: rgba(255, 255, 255, 0.45);
+  line-height: 1.5;
+  letter-spacing: 0.2px;
+}
+.sidebar-copyright > div:first-child {
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.6);
+  margin-bottom: 2px;
+}
+.sidebar-copyright-sub {
+  font-size: 9px;
+  color: rgba(255, 255, 255, 0.35);
+}
 .sidebar-label {
   font-size: 10px;
   color: rgba(255,255,255,0.5);
