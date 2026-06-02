@@ -6,6 +6,7 @@ import {
   isoToDate, dateToIso, addDays, diaSemanaCorto, formatFechaCorta,
   calcularSemanasCalendario, getBloquesSemanasPeriodo, contarSemanasPedagogicas,
 } from '../storage.js'
+import { getSemestresDisponibles, getModulo, getSemanasModulo, SEMESTRES } from '../calendarios.js'
 
 const DIAS_SEM_OPCIONES = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb']
 
@@ -85,26 +86,72 @@ function PeriodoEmpty({ onStart }) {
 }
 
 // ============================================================
-// CONFIGURACIÓN · formulario con fecha inicio + fecha fin + semanas no lectivas
+// CONFIGURACIÓN · formulario con selector de semestre + módulo + datos docente
 // ============================================================
 function PeriodoConfig({ periodo, onSave, onCancel }) {
   const today = dateToIso(new Date())
+
+  // ── Selector institucional ──────────────────────────────
+  const semestresDisp = getSemestresDisponibles()
+  const semestreActivo = SEMESTRES.find((s) => s.activo) ?? SEMESTRES[SEMESTRES.length - 1]
+  const [semestreId, setSemestreId] = useState(periodo?.semestreId || semestreActivo.id)
+  const [moduloNum, setModuloNum] = useState(periodo?.moduloNum || 1)
+
+  // Cuando cambia el semestre o módulo, pre-cargar fechas y asuetos del calendario institucional
+  const moduloData = getModulo(semestreId, moduloNum)
+  const semanasModulo = moduloData ? getSemanasModulo(moduloData) : []
+
+  // Pre-cargar fechas desde el calendario institucional
+  const fechaInicioDefault = moduloData?.inicio || periodo?.fechaInicio || today
+  const fechaFinDefault = moduloData?.fin || periodo?.fechaFin || addDays(today, 7 * 8 - 1)
+
+  // Asuetos institucionales del módulo como feriadosCustom pre-cargados
+  const asuetosInstitucionales = moduloData?.asuetos?.map((a) => ({
+    fecha: a.fecha,
+    nombre: a.nombre,
+    institucional: true,
+  })) || []
+
   const [materia, setMateria] = useState(periodo?.materia || '')
-  const [fechaInicio, setFechaInicio] = useState(periodo?.fechaInicio || today)
-  // fechaFin: si periodo viejo no tenía, calcular 8 semanas desde inicio (legacy)
-  const defaultFin = periodo?.fechaFin || addDays(periodo?.fechaInicio || today, 7 * 8 - 1)
+  const [fechaInicio, setFechaInicio] = useState(fechaInicioDefault)
+  const defaultFin = periodo?.fechaFin || fechaFinDefault
   const [fechaFin, setFechaFin] = useState(defaultFin)
   const [diasClase, setDiasClase] = useState(periodo?.diasClase || ['Lun', 'Mar', 'Mié', 'Jue', 'Vie'])
   const [hora, setHora] = useState(periodo?.hora || '')
   const [modalidadReto, setModalidadReto] = useState(periodo?.modalidadReto || 'B')
   const [semanasReto, setSemanasReto] = useState(periodo?.semanasReto || [4])
   const [fasesReto, setFasesReto] = useState(periodo?.fasesReto || { 4: 'Fase del reto' })
-  const [feriadosCustom, setFeriadosCustom] = useState(periodo?.feriadosCustom || [])
+  const [feriadosCustom, setFeriadosCustom] = useState(periodo?.feriadosCustom || asuetosInstitucionales)
   const [feriadoNuevo, setFeriadoNuevo] = useState({ fecha: '', nombre: '' })
   const [feriadosMxSeleccion, setFeriadosMxSeleccion] = useState(
     periodo?.feriadosMx ?? FERIADOS_MX.map((f) => f.fecha)
   )
   const [semanasNoLectivas, setSemanasNoLectivas] = useState(periodo?.semanasNoLectivas || [])
+
+  // Al cambiar semestre o módulo, actualizar fechas y asuetos automáticamente
+  function handleSemestreChange(nuevoId) {
+    setSemestreId(nuevoId)
+    const sem = SEMESTRES.find((s) => s.id === nuevoId)
+    if (!sem) return
+    const mod = sem.modulos.find((m) => m.numero === moduloNum) || sem.modulos[0]
+    setModuloNum(mod.numero)
+    setFechaInicio(mod.inicio)
+    setFechaFin(mod.fin)
+    setFeriadosCustom(mod.asuetos?.map((a) => ({ fecha: a.fecha, nombre: a.nombre, institucional: true })) || [])
+    setSemanasNoLectivas([])
+  }
+
+  function handleModuloChange(nuevoNum) {
+    setModuloNum(nuevoNum)
+    const sem = SEMESTRES.find((s) => s.id === semestreId)
+    if (!sem) return
+    const mod = sem.modulos.find((m) => m.numero === nuevoNum)
+    if (!mod) return
+    setFechaInicio(mod.inicio)
+    setFechaFin(mod.fin)
+    setFeriadosCustom(mod.asuetos?.map((a) => ({ fecha: a.fecha, nombre: a.nombre, institucional: true })) || [])
+    setSemanasNoLectivas([])
+  }
 
   // Calculados en vivo
   const totalSemanasCal = calcularSemanasCalendario(fechaInicio, fechaFin)
@@ -186,6 +233,8 @@ function PeriodoConfig({ periodo, onSave, onCancel }) {
       diasClase,
       hora,
       modalidadReto,
+      semestreId,
+      moduloNum,
       semanasReto: modalidadReto === 'B' || modalidadReto === 'A' ? semanasReto : [],
       fasesReto: modalidadReto === 'B' || modalidadReto === 'A' ? fasesReto : {},
       feriadosMx: feriadosMxSeleccion,
@@ -224,6 +273,62 @@ function PeriodoConfig({ periodo, onSave, onCancel }) {
         Si tu periodo dura más en calendario porque hay semana santa u otra pausa,
         marca esas semanas como no lectivas y el sistema las restará automáticamente.
       </p>
+
+      {/* ── SELECTOR INSTITUCIONAL · semestre + módulo ── */}
+      <div style={{ background: 'var(--tec-cream)', border: '1px solid var(--tec-green)', borderRadius: 8, padding: '12px 14px', marginBottom: 16 }}>
+        <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--tec-dark)', marginBottom: 10 }}>
+          Calendario institucional MAPS
+        </div>
+        <div className="row">
+          <div className="field">
+            <div className="field-label">Semestre</div>
+            <select value={semestreId} onChange={(e) => handleSemestreChange(e.target.value)}>
+              {semestresDisp.map((s) => (
+                <option key={s.id} value={s.id}>{s.label}{s.activo ? ' ✓ Activo' : ''}</option>
+              ))}
+            </select>
+          </div>
+          <div className="field">
+            <div className="field-label">Módulo</div>
+            <select value={moduloNum} onChange={(e) => handleModuloChange(Number(e.target.value))}>
+              {(SEMESTRES.find((s) => s.id === semestreId)?.modulos || []).map((m) => (
+                <option key={m.numero} value={m.numero}>{m.nombre}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+        {moduloData && (
+          <div style={{ fontSize: 11, color: 'var(--tec-gray)', marginTop: 6, lineHeight: 1.5 }}>
+            <span style={{ color: 'var(--tec-green)', fontWeight: 600 }}>Fechas cargadas automáticamente · </span>
+            {moduloData.inicio} al {moduloData.fin}
+            {moduloData.semanaSedi && (
+              <span style={{ marginLeft: 8, color: 'var(--tec-amber-dark)' }}>
+                · Semana SEDI: {moduloData.semanaSedi.inicio} al {moduloData.semanaSedi.fin}
+              </span>
+            )}
+            {moduloData.asuetos?.length > 0 && (
+              <span style={{ marginLeft: 8, color: 'var(--tec-amber-dark)' }}>
+                · Asueto(s): {moduloData.asuetos.map((a) => a.nombre).join(', ')}
+              </span>
+            )}
+          </div>
+        )}
+        {moduloData?.assessments && (
+          <div style={{ marginTop: 6, display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={{ background: 'var(--tec-dark)', color: '#fff', fontSize: 10, padding: '2px 8px', borderRadius: 10, fontWeight: 600 }}>
+              Semana 8 · Assessment
+            </span>
+            <span style={{ fontSize: 11, color: 'var(--tec-gray)' }}>
+              {moduloData.assessments.inicio} al {moduloData.assessments.fin}
+            </span>
+            {moduloData.limiteCaptura && (
+              <span style={{ fontSize: 11, color: 'var(--tec-amber-dark)', marginLeft: 4 }}>
+                · Límite Banner: {moduloData.limiteCaptura.fecha}
+              </span>
+            )}
+          </div>
+        )}
+      </div>
 
       <div className="row">
         <div className="field">
@@ -442,9 +547,32 @@ function PeriodoSummary({ periodo, onEdit }) {
   const totalCal = calcularSemanasCalendario(periodo.fechaInicio, periodo.fechaFin)
   const modalidadDesc = periodo.modalidadReto === 'A' ? 'Reto en una semana' : periodo.modalidadReto === 'B' ? 'Reto en fases' : 'Reto continuo'
 
+  // Datos institucionales si el periodo fue creado con el selector de semestre
+  const moduloData = periodo.semestreId && periodo.moduloNum
+    ? getModulo(periodo.semestreId, periodo.moduloNum)
+    : null
+
   return (
     <div className="periodo-summary">
       <div className="ps-item"><b>{periodo.materia}</b></div>
+      {moduloData && (
+        <div className="ps-item" style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+          <span style={{ background: 'var(--tec-green)', color: '#fff', fontSize: 10, padding: '2px 8px', borderRadius: 10, fontWeight: 600 }}>
+            {SEMESTRES.find((s) => s.id === periodo.semestreId)?.label}
+          </span>
+          <span style={{ background: 'var(--tec-cream)', color: 'var(--tec-dark)', fontSize: 10, padding: '2px 8px', borderRadius: 10, fontWeight: 600 }}>
+            {moduloData.nombre}
+          </span>
+          {moduloData.semanaSedi && (
+            <span style={{ background: 'var(--tec-amber-pale)', color: 'var(--tec-amber-dark)', fontSize: 10, padding: '2px 8px', borderRadius: 10 }}>
+              SEDI: {moduloData.semanaSedi.inicio}
+            </span>
+          )}
+          <span style={{ background: 'var(--tec-dark)', color: '#fff', fontSize: 10, padding: '2px 8px', borderRadius: 10, fontWeight: 600 }}>
+            S8 · Assessment: {moduloData.assessments?.inicio}
+          </span>
+        </div>
+      )}
       <div className="ps-item">{formatFechaCorta(periodo.fechaInicio)} → {formatFechaCorta(periodo.fechaFin)}</div>
       <div className="ps-item">{periodo.diasClase.join(' · ')}</div>
       {periodo.hora && <div className="ps-item">{periodo.hora}</div>}
@@ -551,7 +679,11 @@ function Calendario({ periodo, onDayClick, diaSeleccionado, onUpdate, onPlanearC
                   <b>Sem ped. {numPed}</b>
                   <span className="week-fechas">{formatFechaCorta(bloque.fechaInicio)} – {formatFechaCorta(bloque.fechaFin)}</span>
                   {esSemanaReto && <span className="reto-tag">{fasesReto[numPed] || 'Reto'}</span>}
-                  {esPresentacion && <span className="reto-tag">Presentación</span>}
+                  {esPresentacion && (
+                    <span className="reto-tag" style={{ background: 'var(--tec-dark)', color: '#fff' }}>
+                      Assessment · Presentación final
+                    </span>
+                  )}
                 </>
               )}
             </div>
