@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { FASES_CLARA } from '../data.js'
 import { Icon } from '../components.jsx'
 import { saveTimerLog } from '../storage.js'
+import { trackUso } from '../analytics.js'   // ← LÍNEA NUEVA 1
 
 export default function TimerCLARA({ onBack }) {
   const [duracionTotal, setDuracionTotal] = useState(120) // minutos
@@ -76,6 +77,7 @@ export default function TimerCLARA({ onBack }) {
     setEvalSaved(false)
     setRunning(true)
     setPaused(false)
+    trackUso('Timer CLARA')   // ← LÍNEA NUEVA 2 (registra apertura/inicio)
   }
 
   function pauseResume() {
@@ -109,6 +111,7 @@ export default function TimerCLARA({ onBack }) {
       fasesReales,
       feeling,
     })
+    trackUso('Timer CLARA', Math.round(elapsed / 60))   // ← LÍNEA NUEVA 3 (duración real exacta)
     setEvalSaved(true)
     setTimeout(() => {
       setShowSummary(false)
