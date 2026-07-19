@@ -1,6 +1,7 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'   // ← useEffect agregado
 import { BANCO_ACTIVIDADES } from '../data.js'
 import { Icon } from '../components.jsx'
+import { trackUso } from '../analytics.js'   // ← LÍNEA NUEVA 1
 
 function badgeClass(fase) {
   if (fase === 'Contextualizar') return 'badge badge-C'
@@ -16,6 +17,10 @@ export default function BancoActividades({ onBack }) {
   const [filtroDur, setFiltroDur] = useState('todas')
   const [filtroFmt, setFiltroFmt] = useState('todos')
   const [soloNoLector, setSoloNoLector] = useState(false)
+
+  useEffect(() => {
+    trackUso('Banco de actividades')   // ← LÍNEA NUEVA 2 (apertura, es herramienta de consulta)
+  }, [])
 
   const filtradas = useMemo(() => {
     return BANCO_ACTIVIDADES.filter((a) => {

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { PROMPTS_IA } from '../data.js'
 import { copyToClipboard } from '../export.js'
 import { Icon } from '../components.jsx'
+import { trackUso } from '../analytics.js'   // ← LÍNEA NUEVA 1
 
 export default function PromptsIA({ onBack }) {
   const [copiado, setCopiado] = useState(null)
@@ -9,10 +10,10 @@ export default function PromptsIA({ onBack }) {
     const ok = await copyToClipboard(texto)
     if (ok) {
       setCopiado(idx)
+      trackUso('Prompts de IA')   // ← LÍNEA NUEVA 2 (copiar es la acción que demuestra uso real)
       setTimeout(() => setCopiado(null), 1500)
     }
   }
-
   return (
     <div className="tool-panel">
       <div className="tool-panel-header">
@@ -24,11 +25,9 @@ export default function PromptsIA({ onBack }) {
         </div>
         <button className="back-btn" onClick={onBack}><Icon.ChevronL size={12} /> Volver</button>
       </div>
-
       <div className="why-box">
         <b>¿Qué es esto?</b> No tienes tiempo de escribirle bien a la IA cada vez. Copia un prompt probado, cámbiale las palabras entre [CORCHETES], y pégalo en la IA que uses. Ahorras 10-15 min cada vez.
       </div>
-
       <div className="prompt-list">
         {PROMPTS_IA.map((p, i) => (
           <div key={i} className="prompt-item">
