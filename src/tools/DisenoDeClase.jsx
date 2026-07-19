@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { callClaude, SYSTEM_CLARA, HelpTip, Icon, MarkdownOutput, markdownToHtml } from '../components.jsx'
 import { saveGenerated } from '../storage.js'
 import { exportToWord, copyToClipboard, printContent } from '../export.js'
+import { trackUso } from '../analytics.js'   // ← LÍNEA NUEVA 1
 
 export default function DisenoDeClase({ prefill, onBack }) {
   const [materia, setMateria] = useState(prefill?.materia || '')
@@ -79,6 +80,7 @@ Extensión: máx ${500 + sesiones * 350} palabras total. Prioriza claridad sobre
       clearInterval(int)
       setOutput(text)
       setLoadingMsg('')
+      trackUso('Diseño de clase', null, materia)   // ← LÍNEA NUEVA 2 (generación exitosa + materia)
     } catch (e) {
       clearInterval(int)
       setError(e.message)

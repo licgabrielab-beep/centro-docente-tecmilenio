@@ -5,7 +5,8 @@ export default async function handler(req, res) {
       method: 'POST',
       body: JSON.stringify({
         herramienta: req.body?.herramienta || 'desconocida',
-        duracion: req.body?.duracion || ''
+        duracion: req.body?.duracion || '',
+        materia: req.body?.materia || ''
       })
     })
   } catch (err) {
