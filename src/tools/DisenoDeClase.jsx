@@ -76,7 +76,8 @@ Para CADA sesión (1 a ${sesiones}), entrega un markdown con estos encabezados:
 
 Extensión: máx ${500 + sesiones * 350} palabras total. Prioriza claridad sobre teoría.`
 
-      const text = await callClaude(prompt, SYSTEM_CLARA, 2200)
+      const maxTokens = 1200 * sesiones + 1000   // ← AJUSTE: crece con las sesiones, antes era fijo en 2200
+      const text = await callClaude(prompt, SYSTEM_CLARA, maxTokens)
       clearInterval(int)
       setOutput(text)
       setLoadingMsg('')
