@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { Icon } from '../components.jsx'
+import { Icon, markdownToHtml } from '../components.jsx'
+import { exportToWord, printContent } from '../export.js'   // ← LÍNEA NUEVA: para descargar/imprimir
 import { FERIADOS_MX } from '../data.js'
 import {
   getPeriodo, savePeriodo, updateClasePeriodo,
@@ -7,6 +8,7 @@ import {
   calcularSemanasCalendario, getBloquesSemanasPeriodo, contarSemanasPedagogicas,
 } from '../storage.js'
 import { getSemestresDisponibles, getModulo, getSemanasModulo, SEMESTRES } from '../calendarios.js'
+import { trackUso } from '../analytics.js'   // ← LÍNEA NUEVA 1
 
 const DIAS_SEM_OPCIONES = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb']
 
@@ -21,6 +23,7 @@ export default function MiPeriodo({ onPlanearClase }) {
     setPeriodo(p)
     setEditing(false)
     setTick((t) => t + 1)
+    trackUso('Mi periodo')   // ← LÍNEA NUEVA 2 (configuración guardada)
   }
 
   function handleEditarClase(fechaISO, updates) {
@@ -28,6 +31,55 @@ export default function MiPeriodo({ onPlanearClase }) {
     setPeriodo(getPeriodo())
     setDiaSeleccionado(null)
     setTick((t) => t + 1)
+  }
+
+  // ── NUEVO: arma un resumen en markdown de todo el periodo, semana por semana ──
+  function generarResumenPeriodo(p) {
+    const bloques = getBloquesSemanasPeriodo(p)
+    const totalPed = bloques.filter((b) => !b.esNoLectiva).length
+
+    let md = `**Materia:** ${p.materia}\n\n`
+    md += `**Periodo:** ${formatFechaCorta(p.fechaInicio)} al ${formatFechaCorta(p.fechaFin)}\n\n`
+    md += `**Días de clase:** ${p.diasClase.join(' · ')}\n\n`
+    if (p.hora) md += `**Hora:** ${p.hora}\n\n`
+
+    bloques.forEach((bloque) => {
+      if (bloque.esNoLectiva) {
+        md += `## Semana cal. ${bloque.numCalendario} · No lectiva\n\n${bloque.motivo || ''}\n\n`
+        return
+      }
+      const esReto = (p.semanasReto || []).includes(bloque.numPedagogica)
+      const esPresentacion = bloque.numPedagogica === totalPed
+      let titulo = `## Semana ${bloque.numPedagogica} · ${formatFechaCorta(bloque.fechaInicio)} – ${formatFechaCorta(bloque.fechaFin)}`
+      if (esPresentacion) titulo += ' · Presentación final'
+      else if (esReto) titulo += ` · ${p.fasesReto?.[bloque.numPedagogica] || 'Reto'}`
+      md += titulo + '\n\n'
+
+      md += '| Día | Fecha | Tema |\n|------|------|------|\n'
+      for (let i = 0; i < 7; i++) {
+        const iso = addDays(bloque.fechaInicio, i)
+        const dow = diaSemanaCorto(iso)
+        if (!p.diasClase.includes(dow)) continue
+        const editado = p.clasesEditadas?.[iso]
+        if (editado?.cancelada) {
+          md += `| ${dow} | ${formatFechaCorta(iso)} | Cancelada${editado.motivoCancel ? ' · ' + editado.motivoCancel : ''} |\n`
+          continue
+        }
+        md += `| ${dow} | ${formatFechaCorta(iso)} | ${editado?.tema || 'Sin tema'} |\n`
+      }
+      md += '\n'
+    })
+    return md
+  }
+
+  function descargarPeriodo() {
+    if (!periodo) return
+    exportToWord(`Mi periodo · ${periodo.materia}`, generarResumenPeriodo(periodo))
+  }
+
+  function imprimirPeriodo() {
+    if (!periodo) return
+    printContent(`Mi periodo · ${periodo.materia}`, markdownToHtml(generarResumenPeriodo(periodo)))
   }
 
   return (
@@ -49,7 +101,7 @@ export default function MiPeriodo({ onPlanearClase }) {
 
       {periodo && !editing && (
         <>
-          <PeriodoSummary periodo={periodo} onEdit={() => setEditing(true)} />
+          <PeriodoSummary periodo={periodo} onEdit={() => setEditing(true)} onDescargar={descargarPeriodo} onImprimir={imprimirPeriodo} />
           <Calendario
             periodo={periodo}
             onDayClick={setDiaSeleccionado}
@@ -542,7 +594,7 @@ function PeriodoConfig({ periodo, onSave, onCancel }) {
 // ============================================================
 // SUMMARY · cuando ya hay periodo guardado
 // ============================================================
-function PeriodoSummary({ periodo, onEdit }) {
+function PeriodoSummary({ periodo, onEdit, onDescargar, onImprimir }) {
   const semanasPed = contarSemanasPedagogicas(periodo)
   const totalCal = calcularSemanasCalendario(periodo.fechaInicio, periodo.fechaFin)
   const modalidadDesc = periodo.modalidadReto === 'A' ? 'Reto en una semana' : periodo.modalidadReto === 'B' ? 'Reto en fases' : 'Reto continuo'
@@ -579,6 +631,8 @@ function PeriodoSummary({ periodo, onEdit }) {
       <div className="ps-item">{modalidadDesc}</div>
       <div className="ps-item"><b>{semanasPed}</b> sem ped. de {totalCal} cal.</div>
       <button className="periodo-edit-btn" onClick={onEdit}><Icon.Edit size={11} /> Editar</button>
+      <button className="periodo-edit-btn" onClick={onDescargar}><Icon.Download size={11} /> Descargar</button>
+      <button className="periodo-edit-btn" onClick={onImprimir}><Icon.Print size={11} /> Imprimir</button>
     </div>
   )
 }
