@@ -23,9 +23,9 @@ export async function readFileText(file) {
 
   if (name.endsWith('.pdf')) {
     const pdfjsLib = await import('pdfjs-dist/build/pdf.mjs')
-    // Configura worker con CDN (compatible con Vite/Vercel)
+    // Usa la MISMA versión que está instalada, para que nunca se desincronicen
     pdfjsLib.GlobalWorkerOptions.workerSrc =
-      'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.7.76/pdf.worker.min.mjs'
+      `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.mjs`
     const arrayBuffer = await file.arrayBuffer()
     const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise
     let text = ''
