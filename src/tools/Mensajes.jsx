@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { callClaude, SYSTEM_CLARA, HelpTip, Icon, MarkdownOutput, markdownToHtml } from '../components.jsx'
 import { saveGenerated } from '../storage.js'
 import { copyToClipboard, exportToWord, printContent } from '../export.js'
+import { trackUso } from '../analytics.js'   // ← LÍNEA NUEVA 1
 
 const TIPOS = [
   { id: 'bienvenida', nombre: 'Bienvenida al curso',     desc: 'Primer mensaje del periodo. Presenta la materia y lo que lograrán.' },
@@ -51,6 +52,7 @@ Entrega SOLO el mensaje final listo para copiar, sin explicaciones ni encabezado
 
       const text = await callClaude(prompt, SYSTEM_CLARA, 900)
       setOutput(text)
+      trackUso('Mensajes del curso')   // ← LÍNEA NUEVA 2 (generación exitosa)
     } catch (e) {
       setError(e.message)
     } finally {
