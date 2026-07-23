@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { callClaude, SYSTEM_CLARA, HelpTip, Icon, MarkdownOutput, markdownToHtml } from '../components.jsx'
 import { saveGenerated } from '../storage.js'
 import { exportToWord, copyToClipboard, printContent } from '../export.js'
+import { trackUso } from '../analytics.js'   // ← LÍNEA NUEVA 1
 
 export default function AsistenteReto({ onBack }) {
   const [reto, setReto] = useState('')
@@ -90,8 +91,9 @@ Genera 3 mensajes cortos (50-80 palabras cada uno) listos para copiar a Canvas o
 Tono: cercano, profesional, alineado con los pilares Tecmilenio (calidad, exigencia, integridad académica).
 Extensión total máxima: 1500 palabras.`
 
-      const text = await callClaude(prompt, SYSTEM_CLARA, 2400)
+      const text = await callClaude(prompt, SYSTEM_CLARA, 3200)   // ← AJUSTE: más margen, antes 2400 estaba justo
       setOutput(text)
+      trackUso('Asistente de Reto Final')   // ← LÍNEA NUEVA 2 (generación exitosa)
     } catch (e) {
       setError(e.message)
     } finally {
