@@ -2,6 +2,7 @@ import { useState, useRef } from 'react'
 import { callClaude, SYSTEM_CLARA, HelpTip, Icon, MarkdownOutput, markdownToHtml } from '../components.jsx'
 import { saveGenerated } from '../storage.js'
 import { exportToWord, copyToClipboard, printContent, readFileText } from '../export.js'
+import { trackUso } from '../analytics.js'   // ← LÍNEA NUEVA 1
 
 export default function Simplificador({ onBack }) {
   const [texto, setTexto] = useState('')
@@ -83,6 +84,7 @@ ${texto}`
 
       const text = await callClaude(prompt, SYSTEM_CLARA, 1800)
       setOutput(text)
+      trackUso('Simplificar texto')   // ← LÍNEA NUEVA 2 (generación exitosa)
     } catch (e) {
       setError(e.message)
     } finally {
