@@ -134,7 +134,12 @@ function Sidebar({ view, activeTool, onNav, onTool }) {
   return (
     <aside className="sidebar">
       <div className="sidebar-logo">
-        <div className="sidebar-logo-t">Aula CLARA</div>
+        <img
+          src="/logo-aula-clara.png"
+          alt="Aula CLARA"
+          style={{ height: '34px', display: 'block', marginBottom: '8px' }}
+        />
+        {/* ← LÍNEA NUEVA: antes decía <div className="sidebar-logo-t">Aula CLARA</div> */}
         <div className="sidebar-logo-s">Tu espacio para diseñar, dar y reflexionar la clase Tecmilenio</div>
         <span className="sidebar-beta">BETA</span>
       </div>
