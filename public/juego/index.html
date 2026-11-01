@@ -1,0 +1,1469 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Contra la Neblina · Aula CLARA</title>
+<style>:root{color-scheme:dark}html,body{margin:0;background:#0E0B24}</style></head><body>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rubik:wght@400;500;700&display=swap">
+<style>
+/* Concepto: aventura lateral en pixeles, de noche. Cielo morado, brasa de fogata como único calor.
+   Mundo oscuro por decisión propia (un solo tema). Letra pixel solo en títulos; el texto de lectura va en Rubik. */
+:root{
+  color-scheme:dark;
+  --n0:#0E0B24; --n1:#1A1442; --panel:#1F1749; --panel2:#2A205E; --line:#43349A;
+  --ink:#F6EEFF; --muted:#BDB2DD; --ember:#FFB703; --glow:#FF8F5E; --mist:#BCD3F2;
+  --font-display:'Press Start 2P','Courier New',monospace;
+  --font-body:'Rubik',system-ui,-apple-system,'Segoe UI',sans-serif;
+}
+*{box-sizing:border-box}
+body{background:var(--n0);color:var(--ink);font-family:var(--font-body);font-size:17px;line-height:1.5;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 48px}
+.wrap{max-width:680px;margin-inline:auto}
+.kicker{font-size:13px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--glow);margin:0 0 8px}
+h1,h2,h3{font-family:var(--font-display);font-weight:400;line-height:1.35;text-wrap:balance;margin:0}
+h1{font-size:clamp(18px,5.4vw,30px);color:var(--ink)}
+h2{font-size:clamp(14px,3.8vw,17px)}
+h3{font-size:13px}
+.stage{position:relative;margin-top:14px;border:2px solid var(--line);border-radius:6px;overflow:hidden;background:var(--n1)}
+.hud{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;padding:8px 12px;background:rgba(14,11,36,.85);border-bottom:2px solid var(--line);position:relative}
+.chip{font-family:var(--font-display);font-size:10px;color:var(--ember)}
+.inv{display:flex;gap:10px;flex-wrap:wrap;align-items:center;order:3;flex-basis:100%}
+.bk.off{visibility:hidden}
+.hudr{display:flex;gap:8px;align-items:center}
+.snd{width:36px;height:36px;border-radius:8px;border:2px solid var(--line);background:var(--panel2);cursor:pointer;display:grid;place-items:center;padding:0}
+.snd svg{width:20px;height:20px}
+.snd .x{display:none}.snd.muted .x{display:inline}.snd.muted .w{display:none}
+.res{display:inline-flex;align-items:center;gap:4px;font-weight:700;font-size:14px;color:var(--ink)}
+.res svg{width:17px;height:17px;display:block}
+.res.bump{animation:bump .5s ease-out}
+@keyframes bump{40%{transform:scale(1.4)}}
+.bk{font:inherit;font-weight:700;font-size:13px;color:var(--n0);background:var(--ember);border:0;border-radius:6px;padding:6px 10px;cursor:pointer;display:inline-flex;gap:6px;align-items:center;box-shadow:0 3px 0 #B07A00}
+.bk svg{width:16px;height:16px}
+.bk.new{animation:blink .8s ease-in-out infinite}
+@keyframes blink{50%{transform:translateY(-3px);filter:brightness(1.25)}}
+.newtag{position:absolute;right:8px;top:100%;margin-top:6px;z-index:3;background:#fff;color:var(--n0);font-weight:700;font-size:13px;padding:5px 9px;border-radius:6px;box-shadow:0 3px 0 rgba(0,0,0,.4);animation:tagin .4s ease-out}
+.newtag::before{content:"";position:absolute;right:26px;top:-6px;border:6px solid transparent;border-top:0;border-bottom-color:#fff}
+@keyframes tagin{from{opacity:0;transform:translateY(-6px)}}
+.cvw{position:relative}
+.ov{position:absolute;left:8px;right:8px;top:8px;background:rgba(31,23,73,.95);border:2px solid var(--ember);border-radius:4px 14px 14px 14px;padding:9px 12px;font-size:15px;line-height:1.35;box-shadow:0 4px 0 rgba(0,0,0,.35);animation:pop .25s ease-out both}
+.ov[hidden]{display:none}
+.ov p{margin:0}
+.ov .who{font-family:var(--font-display);font-size:9px;color:var(--ember);margin-bottom:5px;line-height:1.4}
+.ov.resc{border-color:#2ED08A;background:rgba(10,38,36,.96)}
+.ov.resc .who{margin-bottom:6px}
+.pill{display:inline-block;background:#2ED08A;color:#06241F;border-radius:999px;padding:3px 9px;font-family:var(--font-display);font-size:8px;line-height:1.3;letter-spacing:.03em}
+.dlg.resc .opt{border-color:#1E8F68;background:#0B2624}
+.dlg.resc .opt:hover:not(:disabled){border-color:#2ED08A}
+.dlg.resc .opt.chosen{border-color:#2ED08A;background:#12413A}
+.dlg.resc .btn{background:#2ED08A;color:#06241F;box-shadow:0 4px 0 #1E8F68}
+.dlg .opts{margin-top:12px;gap:8px}
+.dlg .opt{padding:10px 13px;min-height:44px;font-size:16px}
+@media (max-width:480px){.ov{font-size:13.5px;padding:7px 10px;left:6px;right:6px;top:6px}.dlg .opt{font-size:15px;padding:9px 12px}}
+canvas#cv{display:block;width:100%;height:auto;aspect-ratio:16/9;image-rendering:pixelated;image-rendering:crisp-edges;background:var(--n1)}
+.fx{position:absolute;left:0;right:0;top:72%;text-align:center;pointer-events:none}
+.fx span{display:inline-block;font-family:var(--font-display);font-size:12px;color:var(--ember);text-shadow:0 2px 0 #000;animation:rise 1.3s ease-out forwards}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}20%{opacity:1}to{opacity:0;transform:translateY(-34px)}}
+.cap{min-height:1.7em;text-align:center;font-family:var(--font-display);font-size:11px;line-height:1.6;color:var(--ember);margin:12px 0 0}
+.stack{display:flex;flex-direction:column;gap:14px;margin-top:14px}
+.card{background:var(--panel);border:2px solid var(--line);border-radius:8px;padding:18px}
+.story{font-size:18px;margin:10px 0 0}
+.crew{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-top:14px}
+.crew div{text-align:center;font-size:12px;color:var(--muted);line-height:1.25}
+.crew b{display:block;color:var(--ink);font-size:13px}
+canvas.pt{display:block;width:44px;height:auto;image-rendering:pixelated;image-rendering:crisp-edges;margin:0 auto 4px}
+label{display:block;font-weight:700;margin-bottom:6px}
+input[type=text]{width:100%;font:inherit;color:var(--ink);background:var(--n0);border:2px solid var(--line);border-radius:8px;padding:12px 14px}
+input[type=text]::placeholder{color:#8478B8}
+input[type=text]:focus-visible,button:focus-visible,a:focus-visible,summary:focus-visible{outline:3px solid var(--ember);outline-offset:2px}
+.hint{color:var(--muted);font-size:14px;margin:6px 0 0}
+.err{color:#FF9C94;font-weight:700;margin:0;min-height:1.4em}
+.btn{font-family:var(--font-display);font-size:12px;line-height:1.4;background:var(--ember);color:#1B1230;border:0;border-radius:8px;padding:15px 20px;cursor:pointer;min-height:50px;box-shadow:0 4px 0 #B07A00}
+.btn:active{transform:translateY(2px);box-shadow:0 2px 0 #B07A00}
+.btn.ghost{background:transparent;color:var(--ink);border:2px solid var(--line);box-shadow:none}
+.small{font-size:14px;color:var(--muted)}
+.pick{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.hero{font:inherit;color:var(--ink);background:var(--n0);border:2px solid var(--line);border-radius:8px;padding:10px 6px;cursor:pointer;text-align:center}
+.hero[aria-checked="true"]{border-color:var(--ember);background:#2E2158}
+.hero canvas.pt{width:52px}
+.modes{grid-template-columns:1fr 1fr}
+.hero.mode{padding:12px 10px}
+.hero.mode b{font-size:10px;line-height:1.5}
+.hero b{display:block;font-family:var(--font-display);font-weight:400;font-size:11px;margin-bottom:4px}
+.hero small{display:block;color:var(--muted);font-size:12px;line-height:1.25}
+/* controles */
+.ctl{display:flex;gap:10px;margin-top:14px;user-select:none;-webkit-user-select:none}
+.ctl button{flex:1;min-height:60px;font:inherit;font-weight:700;font-size:17px;color:var(--ink);background:var(--panel2);border:2px solid var(--line);border-radius:10px;touch-action:none;cursor:pointer}
+.ctl button.on{background:#3B2D80;border-color:var(--ember)}
+.ctl #bJ{flex:1.4;background:var(--ember);color:#1B1230;border-color:#B07A00}
+.ctlhint{margin:10px 0 0;font-size:14px;color:var(--muted);text-align:center}
+/* prueba */
+.prueba{font-family:var(--font-display);font-size:10px;line-height:1.5;color:var(--glow);margin:0 0 10px}
+.scene{display:flex;gap:12px;align-items:flex-start}
+.scene canvas.pt{flex:0 0 44px;margin:0}
+.bubble{flex:1;min-width:0;background:var(--panel2);border-radius:4px 14px 14px 14px;padding:12px 14px}
+.bubble .who{font-family:var(--font-display);font-size:10px;color:var(--ember);margin:0 0 6px}
+.bubble p{margin:0}
+.opts{display:flex;flex-direction:column;gap:10px;margin-top:14px}
+.opt{font:inherit;text-align:left;color:var(--ink);background:var(--n0);border:2px solid var(--line);border-radius:10px;padding:13px 15px;cursor:pointer;min-height:48px}
+.opt:hover:not(:disabled){border-color:var(--ember)}
+.opt:disabled{cursor:default}
+.opt.chosen{border-color:var(--ember);background:#2E2158}
+.opt.dim{opacity:.55}
+.fb{margin-top:14px;background:#2E2158;border-radius:10px;padding:14px;display:flex;gap:12px;align-items:flex-start}
+.fb canvas.pt{flex:0 0 40px;width:40px;margin:0}
+.fb p{margin:0}
+.fb .who{font-family:var(--font-display);font-size:10px;color:var(--ember);margin-bottom:6px}
+.saved{margin-top:10px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-weight:700;color:var(--glow)}
+.saved button{font:inherit;font-weight:700;font-size:14px;color:var(--n0);background:var(--ember);border:0;border-radius:6px;padding:6px 10px;cursor:pointer;animation:blink .8s ease-in-out 4}
+.nextrow{display:flex;justify-content:flex-end;margin-top:14px}
+.top{display:flex;gap:14px;align-items:center}
+.top canvas.pt{flex:0 0 52px;width:52px;margin:0}
+.row{display:grid;grid-template-columns:44px 1fr;gap:12px;align-items:center;padding:10px 0;border-top:1px solid var(--line)}
+.row:first-of-type{border-top:0}
+.row canvas.pt{width:40px;margin:0}
+.row .nm{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;font-weight:500}
+.row .nm small{display:block;color:var(--muted);font-size:13px}
+.row .lv{font-family:var(--font-display);font-size:10px;color:var(--ember);line-height:1.6}
+.bar{height:10px;border-radius:3px;background:var(--n0);margin-top:6px;overflow:hidden}
+.bar i{display:block;height:100%}
+.reveal{background:linear-gradient(135deg,#3B2780,#6B3FA0)}
+.reveal p{margin:8px 0 0}
+.links a{color:var(--ember);font-weight:700}
+.actions{display:flex;gap:10px;flex-wrap:wrap}
+.cuaderno summary{font-family:var(--font-display);font-size:12px;line-height:1.5;cursor:pointer}
+.cuaderno ol{margin:14px 0 0;padding-left:20px;display:flex;flex-direction:column;gap:10px}
+.cuaderno li b{color:var(--ember);font-weight:500}
+.tips{list-style:none;margin:14px 0 0;padding:0;display:flex;flex-direction:column;gap:12px}
+.tip{background:rgba(14,11,36,.45);border:1px solid var(--line);border-radius:10px;padding:12px 14px;display:flex;flex-direction:column;gap:6px;font-size:15px;line-height:1.4}
+.tip .tt{font-family:var(--font-display);font-weight:400;font-size:11px;line-height:1.5;color:var(--ember)}
+.tip .ph{color:var(--glow)}
+.tip em{font-style:normal;font-weight:700;color:var(--muted)}
+.tip .row2{border-left:3px solid var(--ember);padding-left:10px;color:var(--ink)}
+.tip .row1{color:var(--muted)}
+.guia .gl{margin:12px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:10px;font-size:15px;line-height:1.4}
+.guia .gl b{color:var(--ember)}
+.modal{position:fixed;inset:0;z-index:50;background:rgba(8,6,22,.82);display:flex;align-items:flex-end;justify-content:center;padding:16px}
+.modal[hidden]{display:none}
+.modal .panel{width:100%;max-width:640px;max-height:80vh;overflow:auto;background:var(--panel);border:2px solid var(--ember);border-radius:12px;padding:18px}
+.modal h2{margin-bottom:12px}
+.modal ol{margin:0 0 14px;padding-left:20px;display:flex;flex-direction:column;gap:10px}
+.modal li b{color:var(--ember);font-weight:500}
+.modal .tips{margin-top:0}
+.anim{animation:pop .3s ease-out both}
+@keyframes pop{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion: reduce){.anim,.bk.new,.newtag,.fx span,.res.bump{animation:none!important}}
+@media (max-width:420px){.crew{gap:2px}canvas.pt{width:38px}.hero canvas.pt{width:44px}}
+</style>
+
+<div class="wrap">
+  <p class="kicker">Un juego para docentes</p>
+  <h1 id="gt">Contra la Neblina</h1>
+  <div class="stage" id="stagebox">
+    <div class="hud">
+      <span class="chip" id="chip">Antes de entrar al bosque</span>
+      <div class="inv" id="inv"></div>
+      <div class="hudr"><button class="snd" id="snd" aria-label="Silenciar sonido" aria-pressed="false"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 6h3l4-3v10l-4-3H2z" fill="#F6EEFF"/><path class="w" d="M11 5.5c1.3 1.3 1.3 3.7 0 5M12.8 3.8c2.3 2.3 2.3 6.1 0 8.4" stroke="#F6EEFF" stroke-width="1.3" fill="none" stroke-linecap="round"/><path class="x" d="M11 5.5l4 5M15 5.5l-4 5" stroke="#FF8F5E" stroke-width="1.5" stroke-linecap="round"/></svg></button><button class="bk off" id="bk" aria-label="Abrir mi cuaderno de trucos"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="2" y="1" width="12" height="14" rx="1.5" fill="#1B1230"/><rect x="4" y="3" width="8" height="2" fill="#FFB703"/><rect x="4" y="7" width="6" height="1.4" fill="#FFB703"/><rect x="4" y="10" width="7" height="1.4" fill="#FFB703"/></svg>Cuaderno <b id="bkn">0</b></button></div>
+      <span class="newtag" id="newtag" hidden>¡Nuevo truco!</span>
+    </div>
+    <div class="cvw"><canvas id="cv" width="256" height="144" aria-label="Escena del juego: un personaje de bloques recorre un bosque de noche"></canvas>
+    <div class="ov" id="ov" hidden aria-live="polite"></div></div>
+    <div class="fx" id="fx"></div>
+  </div>
+  <p class="cap" id="cap" aria-live="polite"></p>
+  <div id="app"></div>
+</div>
+<div class="modal" id="modal" hidden role="dialog" aria-modal="true" aria-label="Mi cuaderno de trucos">
+  <div class="panel"><h2>Mi cuaderno de trucos</h2><div id="modalbody"></div><button class="btn" id="mclose">Seguir jugando</button></div>
+</div>
+
+<script>
+(function(){
+  'use strict';
+  // Cuando la página se aloje en un sitio propio, pega aquí la URL de la hoja de Google (Apps Script).
+  var SHEET_URL = 'https://script.google.com/macros/s/AKfycby_itRUnzENUKyPn3fpKti7IZLg-BF0cIbo169zAWE9n9fl9q43S6JZ49wtj9tUA1U2/exec';
+  var RONDA = 1;
+  var APP_URL = 'https://centro-docente-tecmilenio.vercel.app';
+  var REDUCED = false; try{ REDUCED = window.matchMedia('(prefers-reduced-motion: reduce)').matches; }catch(_){}
+
+  /* ---------- Música y sonidos (se generan aquí, sin archivos) ---------- */
+  var AU={ctx:null,master:null,on:true,theme:null,step:0,next:0,timer:null};
+  try{ if(localStorage.getItem('clara_mute')==='1') AU.on=false; }catch(_){}
+  function mf(m){return 440*Math.pow(2,(m-69)/12);}
+  var TH={
+    explore:{bpm:122,lead:[72,0,76,0,79,76,0,72, 69,0,72,0,76,72,0,69, 65,0,69,0,72,69,0,65, 67,0,71,0,74,71,67,0],
+             bass:[48,0,55,0,48,0,55,0, 45,0,52,0,45,0,52,0, 41,0,48,0,41,0,48,0, 43,0,50,0,43,0,50,0], lt:'square', lv:.05, hat:1},
+    tension:{bpm:156,lead:[69,72,69,72,76,72,69,0, 68,71,68,71,75,71,68,0, 69,72,69,72,76,79,76,72, 76,75,76,75,69,0,0,0],
+             bass:[45,45,45,45,45,45,45,45, 44,44,44,44,44,44,44,44, 45,45,45,45,45,45,45,45, 40,40,40,40,40,40,40,40], lt:'square', lv:.045, hat:1},
+    calm:{bpm:84,lead:[0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0],
+          arp:[60,64,67,71,67,64,67,64, 57,60,64,67,64,60,64,60, 53,57,60,64,60,57,60,57, 55,59,62,65,62,59,62,59], bass:[36,0,0,0,0,0,0,0, 33,0,0,0,0,0,0,0, 29,0,0,0,0,0,0,0, 31,0,0,0,0,0,0,0], lt:'triangle', lv:.05},
+    rescue:{bpm:76,lead:[69,0,0,67,0,0,65,0, 64,0,62,0,60,0,0,0, 65,0,0,64,0,0,62,0, 60,0,0,0,55,0,0,0],
+            bass:[45,0,0,0,45,0,0,0, 41,0,0,0,41,0,0,0, 43,0,0,0,43,0,0,0, 36,0,0,0,36,0,0,0], lt:'sawtooth', lv:.035},
+    camp:{bpm:100,lead:[65,0,69,0,72,0,69,0, 70,0,74,0,77,0,74,0, 72,0,76,0,79,0,76,0, 77,0,76,0,72,0,0,0],
+          bass:[41,0,48,0,41,0,48,0, 46,0,53,0,46,0,53,0, 48,0,55,0,48,0,55,0, 41,0,48,0,53,0,48,0], lt:'triangle', lv:.07}
+  };
+  function audioInit(){
+    try{
+      if(!AU.ctx){
+        var AC=window.AudioContext||window.webkitAudioContext; if(!AC) return;
+        AU.ctx=new AC(); AU.master=AU.ctx.createGain(); AU.master.gain.value=AU.on?.5:0; AU.master.connect(AU.ctx.destination);
+        AU.timer=setInterval(audioTick,30);
+      }
+      if(AU.ctx.state==='suspended') AU.ctx.resume();
+    }catch(_){}
+  }
+  function tone(type,f0,f1,t,dur,vol){
+    var o=AU.ctx.createOscillator(), g=AU.ctx.createGain(); o.type=type; o.frequency.setValueAtTime(f0,t);
+    if(f1&&f1!==f0) o.frequency.exponentialRampToValueAtTime(f1,t+dur);
+    g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(vol,t+.01); g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+    o.connect(g); g.connect(AU.master); o.start(t); o.stop(t+dur+.02);
+  }
+  function noise(t,dur,vol,hp){
+    var n=Math.floor(AU.ctx.sampleRate*dur), b=AU.ctx.createBuffer(1,n,AU.ctx.sampleRate), d=b.getChannelData(0); for(var i=0;i<n;i++) d[i]=Math.random()*2-1;
+    var s=AU.ctx.createBufferSource(); s.buffer=b; var f=AU.ctx.createBiquadFilter(); f.type='highpass'; f.frequency.value=hp||4000; var g=AU.ctx.createGain();
+    g.gain.setValueAtTime(vol,t); g.gain.exponentialRampToValueAtTime(0.0001,t+dur); s.connect(f); f.connect(g); g.connect(AU.master); s.start(t);
+  }
+  function setTheme(n){ if(!AU.ctx||AU.theme===n) return; AU.theme=n; AU.step=0; AU.next=AU.ctx.currentTime+.06; }
+  function audioTick(){
+    if(!AU.ctx||!AU.theme||AU.ctx.state!=='running') return;
+    var th=TH[AU.theme], sd=60/th.bpm/2;
+    while(AU.next<AU.ctx.currentTime+.14){
+      var i=AU.step%32, t=AU.next;
+      if(th.lead[i]) tone(th.lt,mf(th.lead[i]),0,t,sd*1.7,th.lv);
+      if(th.arp&&th.arp[i]) tone('triangle',mf(th.arp[i]),0,t,sd*1.9,.04);
+      if(th.bass[i]) tone('triangle',mf(th.bass[i]),0,t,sd*(AU.theme==='tension'?.9:1.8),.09);
+      if(th.hat&&i%2===1) noise(t,.03,.03,6000);
+      AU.next+=sd; AU.step++;
+    }
+  }
+  function sfx(n){
+    if(!AU.ctx||AU.ctx.state!=='running'||!AU.on) return; var t=AU.ctx.currentTime+.005;
+    if(n==='jump') tone('square',330,720,t,.16,.05);
+    else if(n==='coin'){tone('square',988,988,t,.07,.05);tone('square',1319,1319,t+.07,.2,.05);}
+    else if(n==='stomp'){tone('square',460,120,t,.13,.07);tone('square',880,880,t+.12,.08,.05);tone('square',1175,1175,t+.2,.2,.05);}
+    else if(n==='hit'){tone('sawtooth',260,50,t,.38,.08);noise(t,.2,.06,1500);}
+    else if(n==='block'){tone('triangle',150,60,t,.12,.12);noise(t,.08,.05,2500);}
+    else if(n==='heart'){[523,659,784,1047].forEach(function(f,k){tone('square',f,f,t+k*.08,.14,.05);});}
+    else if(n==='pick') tone('triangle',700,900,t,.1,.08);
+    else if(n==='ok'){[523,659,784,1047].forEach(function(f,k){tone('square',f,f,t+k*.1,.16,.05);});}
+    else if(n==='bad'){tone('sawtooth',392,330,t,.26,.06);tone('sawtooth',330,247,t+.28,.4,.06);}
+    else if(n==='build'){tone('triangle',120,60,t,.2,.15);tone('square',880,880,t+.08,.18,.04);tone('square',1175,1175,t+.16,.2,.04);}
+    else if(n==='fanfare'){[[523,0],[659,.14],[784,.28],[1047,.42]].forEach(function(p){tone('square',p[0],p[0],t+p[1],.2,.06);});[[523,.62],[659,.62],[784,.62],[1047,.62]].forEach(function(p){tone('square',p[0],p[0],t+p[1],.9,.04);});}
+  }
+  function musicUpdate(){
+    if(!AU.ctx) return;
+    var th='calm';
+    if(st.mode==='play'){ th='explore';
+      for(var i=0;i<enemies.length;i++){var e=enemies[i]; if(e.dead<=0&&Math.abs(e.x-P.x)<80){th='tension';break;}} }
+    else if(st.mode==='dialog') th='calm';
+    else if(st.mode==='rescue') th='rescue';
+    else if(st.mode==='camp'||st.mode==='result') th='camp';
+    else return;
+    setTheme(th);
+  }
+  function setMuted(m){
+    AU.on=!m; try{localStorage.setItem('clara_mute',m?'1':'0');}catch(_){}
+    if(AU.master) AU.master.gain.value=AU.on?.5:0;
+    var b=document.getElementById('snd'); if(b){b.setAttribute('aria-pressed',m?'true':'false');b.setAttribute('aria-label',m?'Activar sonido':'Silenciar sonido');b.classList.toggle('muted',m);}
+  }
+  document.addEventListener('visibilitychange',function(){ if(!AU.ctx) return; if(document.hidden) AU.ctx.suspend(); else if(AU.on) AU.ctx.resume(); });
+
+  var W=256, H=144, GY=112;
+  var cv=document.getElementById('cv'), ctx=cv.getContext('2d'); ctx.imageSmoothingEnabled=false;
+  var SC=1;
+  function sizeCanvas(){
+    var dpr=Math.min(window.devicePixelRatio||1,3), cw=cv.clientWidth||256;
+    var w=Math.max(256,Math.round(cw*dpr)); if(w!==cv.width){cv.width=w; cv.height=Math.round(w*9/16); ctx.imageSmoothingEnabled=false;}
+    SC=cv.width/256;
+  }
+  window.addEventListener('resize',sizeCanvas);
+
+  /* ---------- Datos del juego ---------- */
+  var PH = [
+    {guide:'Brújula', piece:'Cimientos',      fase:'Contextualizar',       res:'Piedra'},
+    {guide:'Taller',  piece:'Muros',          fase:'Llevar a la práctica', res:'Tablón'},
+    {guide:'Eco',     piece:'Fogata',         fase:'Activar el diálogo',   res:'Leña'},
+    {guide:'Espejo',  piece:'Torre de vigía', fase:'Retroalimentar',       res:'Cuerda'},
+    {guide:'Ancla',   piece:'Faro',           fase:'Anclar el propósito',  res:'Cristal'}
+  ];
+  var BARCOL=['#5BC0BE','#F4A261','#B388EB','#F28482','#FFD166'];
+  var ICON = [
+    '<polygon points="2,12 5,5 11,4 14,10 12,14 4,14" fill="#9C96C8"/>',
+    '<rect x="2" y="4" width="12" height="8" rx="1.5" fill="#C98B5B"/><path d="M5 4V12M9 4V12" stroke="#8A5A3A" stroke-width="1"/>',
+    '<circle cx="8" cy="8" r="6" fill="#B07A52"/><circle cx="8" cy="8" r="3.2" fill="none" stroke="#8A5A3A" stroke-width="1.4"/>',
+    '<circle cx="8" cy="8" r="5.3" fill="none" stroke="#E9D8A6" stroke-width="2.4" stroke-dasharray="3 1.6"/>',
+    '<polygon points="8,1 14,7 8,15 2,7" fill="#8EE3EF"/><path d="M2 7H14M8 1V15" stroke="#4FB3C8" stroke-width=".8"/>'
+  ];
+  var ICON_SPARK='<path d="M8 1 L10 6 L15 8 L10 10 L8 15 L6 10 L1 8 L6 6Z" fill="#FFD166"/>';
+  var STRONG = [
+    'Haces que el tema se sienta cercano desde el primer minuto.',
+    'Tus estudiantes aprenden haciendo, no solo escuchando.',
+    'En tu clase se conversa, y conversar mueve el pensamiento.',
+    'Lees al grupo y ajustas a tiempo.',
+    'Tus estudiantes se llevan un para qué.'
+  ];
+  var RETOS = [
+    'Abre una clase con una sola pregunta sobre la vida real del tema, antes de explicar nada.',
+    'Convierte los últimos 15 minutos de una clase en una práctica en equipos con un caso corto.',
+    'Prueba «piénsalo con quien tienes al lado» durante un minuto antes de pedir participaciones.',
+    'Cierra una clase con una pregunta de un minuto: «¿qué quedó borroso?».',
+    'Termina una clase pidiendo una sola frase: «esto lo usaría en…».'
+  ];
+  var QNAME = {3:'Reforzado', 2:'Firme', 1:'En obra'};
+  // Cada prueba: fase, título, escena real del aula y tres opciones (nivel 3, 2, 1). "order" cambia su posición en pantalla.
+  var S = [
+    {p:0, order:[1,0,2], title:'Antes del anochecer',
+     text:'Arranca un tema nuevo en tu clase de {m}. El grupo llega distraído. ¿Cómo abres?', o:[
+      {t:'Planteo una situación real y les pregunto qué harían.', r:'Eso les da un motivo para quedarse: ven para qué sirve antes de que lo expliques.', i:'Si la situación sale de ellos, mejor: pídeles que cuenten un caso parecido que hayan vivido.'},
+      {t:'Cuento un ejemplo real y luego desarrollo el tema.', r:'Un buen ejemplo ya baja el tema a tierra. Tú pones el puente.', i:'Cierra el ejemplo con «¿les ha pasado algo así?». Pasan de oír a conectar.'},
+      {t:'Voy directo al contenido.', r:'Ir directo respeta el tiempo, y con grupos que ya saben a dónde van funciona bien.', i:'Un minuto de arranque con una pregunta («¿dónde han visto esto?») suele ser todo lo que hace falta.'}]},
+    {p:1, order:[2,1,0], title:'Levantar los muros',
+     text:'Ya explicaste lo central de {m}. Quedan 30 minutos. ¿Qué haces?', o:[
+      {t:'Les doy un caso para resolver en equipos con lo explicado.', r:'Aquí es donde el tema se les queda: lo usan, no solo lo oyen.', i:'Si el caso termina en algo visible (una decisión, un borrador), el cierre se hace solo.'},
+      {t:'Hago un ejercicio modelo y luego ellos lo repiten.', r:'Modelar primero da seguridad, y repetirlo ya es práctica.', i:'Cambia un dato del ejercicio para que no sea copia y tengan que pensar.'},
+      {t:'Sigo explicando con más ejemplos.', r:'Se nota que te importa que nadie se quede atrás.', i:'Prueba intercalar: dos ejemplos tuyos, uno de ellos. Sigues asegurando y ellos ya practican.'}]},
+    {p:1, order:[0,2,1], title:'Cada quien a su ritmo',
+     text:'En la práctica de {m}, unos terminan en cinco minutos y otros ni arrancan. ¿Qué haces?', o:[
+      {t:'Reto extra a quienes terminan; yo apoyo a quienes se atoraron.', r:'Tu aula trabaja a varios ritmos y todos tienen algo que hacer.', i:'Presenta el reto extra como «ahora hazlo más difícil», para que no se sienta castigo por terminar rápido.'},
+      {t:'Paso por las mesas resolviendo dudas.', r:'La atención directa es de lo más valioso que puedes dar.', i:'Anota en el pizarrón las dudas que se repiten: resuelves una vez para todos.'},
+      {t:'Espero a que todos terminen.', r:'Avanzar juntos cuida al grupo y evita que alguien se pierda.', i:'Mientras esperas, una pregunta abierta para quienes ya terminaron mantiene la energía.'}]},
+    {p:2, order:[1,2,0], title:'El silencio del bosque',
+     text:'Explicas algo clave de {m}, preguntas «¿dudas?» y silencio total. ¿Qué haces?', o:[
+      {t:'Pregunta abierta, un minuto en parejas y luego compartimos.', r:'Hablar primero en pareja baja el miedo a hablar frente a todos.', i:'Pide que compartan lo que dijo su compañero: participar se siente menos expuesto.'},
+      {t:'Pido voluntarios o pregunto directo a alguien.', r:'Preguntar directo rompe el silencio, y eso ya es conversación.', i:'Avisa antes («en 30 segundos le pregunto a alguien») para que no sea sorpresa.'},
+      {t:'Asumo que quedó claro y sigo.', r:'Muchas veces el silencio sí es comprensión, y el tiempo corre.', i:'Una pregunta de 20 segundos («díganme una cosa que se llevan hasta aquí») te confirma sin frenar.'}]},
+    {p:2, order:[2,0,1], title:'Dos voces en la fogata',
+     text:'Dos estudiantes discrepan sobre cómo resolver un caso de {m}. ¿Qué haces?', o:[
+      {t:'Abro la discusión al grupo y yo modero.', r:'Cuando discuten, piensan en voz alta, y eso enseña más que la respuesta.', i:'Cierra preguntando qué los convenció: ese razonamiento es el aprendizaje.'},
+      {t:'Los dejo discutir un rato y luego aclaro.', r:'Dejas espacio y también das certeza: es un buen equilibrio.', i:'Antes de aclarar, pregunta al grupo qué opina; tu cierre queda más fuerte.'},
+      {t:'Aclaro cuál es la correcta para ahorrar tiempo.', r:'Cuidas el tiempo y evitas confusión; en una clase cargada de contenido eso importa.', i:'Aunque aclares tú, pedir a ambos que expliquen por qué lo pensaron así convierte el choque en aprendizaje.'}]},
+    {p:3, order:[2,0,1], title:'Caras en la penumbra',
+     text:'A media clase de {m} ves caras de confusión. ¿Qué haces?', o:[
+      {t:'Verificación rápida (pregunta, mano levantada) y ajusto sobre la marcha.', r:'Eso es leer al grupo en tiempo real: ajustas antes de que se pierda el hilo.', i:'Con tarjetas de colores o un voto a mano levantada, la verificación toma menos de un minuto.'},
+      {t:'Retomo la explicación con otro ejemplo.', r:'Volver a explicar de otra manera funciona, y se agradece.', i:'Pregunta antes cuál parte no quedó clara: el segundo ejemplo cae justo en el hueco.'},
+      {t:'Sigo y lo repaso la próxima clase.', r:'A veces el contenido manda, y repasar al inicio también es retroalimentar.', i:'Una pregunta final de un minuto («¿qué quedó borroso?») te dice qué repasar mañana.'}]},
+    {p:3, order:[1,0,2], title:'El mapa de lo hecho',
+     text:'Llegan los trabajos de {m} para revisar. ¿Cómo devuelves la retroalimentación?', o:[
+      {t:'Comentarios breves: qué salió bien, qué mejorar y oportunidad de corregir.', r:'Con oportunidad de corregir, la retroalimentación se vuelve aprendizaje y no solo calificación.', i:'Con una sola cosa por mejorar, es más fácil que la usen.'},
+      {t:'Califico con una rúbrica clara.', r:'Una rúbrica clara da justicia y transparencia, y eso ya orienta.', i:'Agrega una frase personalizada por trabajo: poco esfuerzo, mucho impacto.'},
+      {t:'Pongo la calificación; el tiempo no da para más.', r:'La carga es real, y calificar a tiempo ya es un servicio.', i:'Un comentario general para todo el grupo («esto salió bien, esto se repitió») da retroalimentación sin revisar uno por uno.'}]},
+    {p:4, order:[0,2,1], title:'La luz del faro',
+     text:'Faltan cinco minutos de clase de {m}. ¿Cómo cierras?', o:[
+      {t:'Les pido que digan cómo usarían lo de hoy en su vida profesional.', r:'Les das una razón para recordarlo: lo conectan con su camino.', i:'Que lo escriban en una frase y la guarden; sirve de arranque para la próxima clase.'},
+      {t:'Resumo los puntos clave del día.', r:'Un buen resumen ordena la cabeza y asegura que se vayan con lo esencial.', i:'Pide a un estudiante que resuma por ti: ellos repasan y tú recibes una señal.'},
+      {t:'Cierro cuando suena la hora y dejo tarea.', r:'A veces la hora aprieta, y dejar claro lo que sigue es útil.', i:'Una pregunta final («¿para qué les sirve esto?») toma 30 segundos y cambia el cierre.'}]}
+  ];
+
+  /* ---------- Banco de situaciones por materia ----------
+     Cada espacio de S tiene 3 variantes (la original + 2 de S_ALT). La variante sale de la materia (siempre la misma para la misma materia,
+     para que la ronda 2 sea comparable) y se guarda en el registro como "sit". Casos tomados de la realidad de aula de Tecmilenio. */
+  var S_ALT=[
+   [ /* espacio 0 · Contextualizar */
+    {p:0, order:[2,0,1], title:'La pregunta del fondo',
+     text:'En {m}, un estudiante pregunta en voz alta: «¿y esto para qué me va a servir?». ¿Qué haces?', o:[
+      {t:'Le devuelvo la pregunta al grupo: «¿dónde creen que se usa esto en su carrera?» y conecto con sus respuestas.', r:'Dejas que ellos construyan el para qué, y lo que construyen sí se lo creen.', i:'Anota sus respuestas en el pizarrón y regresa a ellas al cierre: verán que la pregunta se contestó sola.'},
+      {t:'Le doy un ejemplo real de cómo se usa en el trabajo.', r:'Un ejemplo concreto responde la duda y baja el tema a tierra.', i:'Pide que alguien más ponga otro ejemplo: pasas de contestar tú a que lo piensen ellos.'},
+      {t:'Le digo que lo va a necesitar más adelante y sigo.', r:'Es verdad que lo va a necesitar, y mantienes el ritmo de la clase.', i:'«Más adelante» suena lejano. Une el tema con algo de esta semana: un caso, una tarea o una decisión real.'}]},
+    {p:0, order:[1,2,0], title:'El anuncio que nadie abrió',
+     text:'Es la segunda semana de {m} y casi nadie leyó el anuncio de Canvas con las reglas del curso. ¿Qué haces?', o:[
+      {t:'Dedico cinco minutos a revisarlo juntos en pantalla y les pido que me digan con sus palabras qué entendieron.', r:'Lo que se lee en conjunto y se explica con palabras propias se recuerda: el anuncio deja de ser un trámite.', i:'Cierra con una pregunta de verificación («¿cuándo es la primera entrega y dónde se sube?») y publica el anuncio más corto.'},
+      {t:'Lo resumo yo en tres ideas y lo repito al inicio de la siguiente clase.', r:'Resumir lo esencial baja la carga, y repetirlo ayuda a que se quede.', i:'Pídeles que se lo resuman a un compañero: lo recuerdan mejor que si solo lo oyen.'},
+      {t:'Les recuerdo que está en Canvas y que es su responsabilidad leerlo.', r:'Es cierto que es responsabilidad de cada uno, y tu aviso queda claro.', i:'Acompaña el aviso con una acción de un minuto en clase (abrirlo juntos): sin eso, pocos lo harán.'}]}
+   ],
+   [ /* espacio 1 · Llevar a la práctica */
+    {p:1, order:[0,2,1], title:'El ejercicio relámpago',
+     text:'En la práctica de {m}, varios entregan en cinco minutos respuestas apuradas, sin explicar cómo llegaron. ¿Qué haces?', o:[
+      {t:'Les pido que me expliquen en dos frases cómo llegaron a su respuesta y les doy la oportunidad de ajustarla.', r:'Pedir el razonamiento convierte entregar rápido en pensar, sin regañar a nadie.', i:'Haz de «¿cómo lo supiste?» una pregunta fija de tu clase: pronto la anticiparán.'},
+      {t:'Agrego una segunda parte al ejercicio que exige justificar la respuesta.', r:'Rediseñar la tarea para pedir razonamiento resuelve el problema desde la actividad.', i:'Avísalo desde el inicio («la respuesta vale la mitad; el razonamiento, la otra mitad») para que no se vea como castigo.'},
+      {t:'Les digo que revisen mejor antes de entregar.', r:'Invitas a la calidad y respetas su autonomía.', i:'Una pauta de dos preguntas («¿cómo lo comprobaste?, ¿qué otra opción viste?») vuelve concreto el «revisen mejor».'}]},
+    {p:1, order:[2,0,1], title:'Instrucciones a medias',
+     text:'Dejas una actividad de {m} con instrucciones escritas en Canvas y varios te preguntan lo que ya decían. ¿Qué haces?', o:[
+      {t:'Antes de empezar, pido a un equipo que explique la instrucción con sus palabras y al resto que complete lo que falte.', r:'Cuando la explican, la entienden de verdad, y detectas huecos antes de que se pierdan.', i:'Deja la instrucción en tres pasos numerados y con el producto final a la vista: se lee en medio minuto.'},
+      {t:'Respondo la duda y proyecto la instrucción en pantalla para todos.', r:'Aclarar para todos evita repetirlo mesa por mesa.', i:'La próxima vez, proyéctala al arrancar y pregunta «¿qué es lo primero que van a hacer?».'},
+      {t:'Les pido que la lean con calma y vuelvan a preguntarme si no queda claro.', r:'Les das la responsabilidad de leer, y eso es sano.', i:'Combínalo con un paso de comprobación: «díganme en voz baja qué van a entregar».'}]}
+   ],
+   [ /* espacio 2 · Llevar a la práctica */
+    {p:1, order:[1,0,2], title:'El equipo que no arranca',
+     text:'En la práctica de {m}, un equipo se ve sin interés y no ha empezado. ¿Qué haces?', o:[
+      {t:'Me acerco, pregunto qué les está costando y les ayudo a dar el primer paso con una pregunta concreta.', r:'Muchas veces el desinterés es no saber por dónde empezar, y un primer paso pequeño lo mueve.', i:'Déjales una tarea mínima de dos minutos y regresa: ver avance los engancha.'},
+      {t:'Les recuerdo el objetivo y el tiempo que queda.', r:'Aclarar para qué y cuánto tiempo orienta y baja la ansiedad.', i:'Pregunta antes qué parte les cuesta: tu recordatorio cae justo donde hace falta.'},
+      {t:'Dejo que avancen a su ritmo y reviso al final.', r:'Respetas su autonomía y confías en que se ordenen.', i:'Una visita de un minuto a mitad de la práctica detecta si no han empezado, y evita llegar tarde a ayudar.'}]},
+    {p:1, order:[2,1,0], title:'La puerta que no deja de abrirse',
+     text:'Durante la práctica de {m}, varios estudiantes salen y entran del salón constantemente. ¿Qué haces?', o:[
+      {t:'Acuerdo con el grupo una pausa a mitad de la práctica y converso aparte con quien sigue saliendo para entender qué pasa.', r:'Darle un espacio a la pausa baja las salidas, y conversar en privado cuida la relación.', i:'Si se repite, anota frecuencia y contexto: es la información que necesita la mentora si hay que escalar.'},
+      {t:'Pido que salgan solo una vez y en silencio.', r:'Una regla clara protege la dinámica del grupo.', i:'Acuérdala con ellos al inicio del curso: una regla acordada se cumple más que una impuesta.'},
+      {t:'Les pido que no salgan salvo urgencia y sigo con la clase.', r:'Cuidas la continuidad de la actividad.', i:'Pregunta en privado, sin reclamo, qué hay detrás de las salidas: puede haber una razón que cambie lo que haces.'}]}
+   ],
+   [ /* espacio 3 · Activar el diálogo */
+    {p:2, order:[0,2,1], title:'Cabezas abajo',
+     text:'Explicas un tema de {m} y buena parte del grupo está mirando hacia abajo, con poco interés. ¿Qué haces?', o:[
+      {t:'Detengo la explicación, lanzo una pregunta para resolver en parejas y pido que compartan lo que acordaron.', r:'Pasar de escuchar a conversar recupera la atención sin señalar a nadie.', i:'Haz que la respuesta no esté en tus diapositivas: así tienen que pensar.'},
+      {t:'Cambio el ritmo: hago una pregunta al grupo y pido a alguien que responda.', r:'Cambiar de ritmo rompe la pasividad.', i:'Avisa antes quién será («en 30 segundos le pregunto a alguien») para que no sea sorpresa.'},
+      {t:'Sigo explicando y confío en que quienes quieren aprender prestan atención.', r:'No pierdes tiempo y atiendes a quienes sí te siguen.', i:'Cada diez minutos, una pregunta breve al grupo recupera a quienes se desconectaron.'}]},
+    {p:2, order:[2,1,0], title:'Dije una cosa, hicieron otra',
+     text:'Das una indicación clara en {m}, pero varios hacen algo distinto a lo que pediste. ¿Qué haces?', o:[
+      {t:'Pido a un estudiante que repita la indicación con sus palabras y la comparamos con lo que hicieron, sin señalar a nadie.', r:'Que la repitan con sus palabras muestra dónde se perdió la instrucción, y se corrige sin reclamo.', i:'Una indicación en tres pasos cortos, dichos y escritos, reduce casi a cero el «yo entendí otra cosa».'},
+      {t:'La repito más despacio y la dejo escrita en pantalla.', r:'Decirlo y mostrarlo ayuda a más estilos de atención.', i:'Antes de soltar al grupo, pregunta «¿qué va a hacer primero cada quien?».'},
+      {t:'Les digo que pongan más atención a las indicaciones.', r:'Llamas a la responsabilidad personal, y es verdad que cuenta.', i:'Dale al grupo una forma concreta de hacerlo: repetir la indicación a la persona de al lado.'}]}
+   ],
+   [ /* espacio 4 · Activar el diálogo */
+    {p:2, order:[1,0,2], title:'La entrada tardía',
+     text:'Estás en plena dinámica en equipos de {m} y tres estudiantes llegan 15 minutos tarde. ¿Qué haces?', o:[
+      {t:'Los integro con una tarea corta: un compañero les resume lo que llevan y ellos aportan una idea. Hablo aparte con ellos al final.', r:'Los incorporas sin frenar al grupo, y la conversación sobre la puntualidad queda en privado.', i:'Si se repite, pregunta qué necesitan para llegar a tiempo: suele servir más que recordar la regla.'},
+      {t:'Los sumo a un equipo y les pido que se pongan al día con un compañero.', r:'Mantienes el ritmo y los incluyes.', i:'Pregunta al final qué les pasó: una pregunta sin reproche abre más que una advertencia.'},
+      {t:'Les llamo la atención frente al grupo para que sepan que llegar a tiempo importa.', r:'Defiendes la puntualidad, y el grupo lo nota.', i:'Frente al grupo suele generar defensa. En privado y con una pregunta, el mensaje llega igual sin dañar la relación.'}]},
+    {p:2, order:[0,1,2], title:'El equipo incompleto',
+     text:'Armas equipos en {m} para discutir un caso y varios estudiantes faltaron, así que algunos equipos quedan incompletos. ¿Qué haces?', o:[
+      {t:'Reorganizo los equipos al momento y dejo a cada uno un rol (explicar, cuestionar, resumir) para que todos participen.', r:'Los roles hacen que la conversación funcione aunque el equipo cambie.', i:'Deja el caso y los roles en Canvas: quien faltó puede ponerse al día y aportar después.'},
+      {t:'Uno los equipos incompletos con otros y sigo como estaba planeado.', r:'Resuelves rápido y no pierdes la dinámica.', i:'Pide que el equipo nuevo resuma su acuerdo al grupo: ese cierre hace visible la participación.'},
+      {t:'Cambio la actividad a trabajo individual para no complicar.', r:'Quitas el problema logístico y todos hacen algo.', i:'Conservar un momento de discusión en parejas mantiene la conversación sin depender de equipos completos.'}]}
+   ],
+   [ /* espacio 5 · Retroalimentar */
+    {p:3, order:[1,2,0], title:'El comentario que duele',
+     text:'Corriges a un estudiante de {m} frente a la clase y se nota molesto. ¿Qué haces?', o:[
+      {t:'Me acerco al terminar, reconozco algo concreto que hizo bien y le pregunto cómo le cayó el comentario.', r:'Escuchar cómo recibió la retroalimentación la hace útil y protege la relación.', i:'La próxima vez, empieza por lo que sí funcionó y da la corrección en privado o por escrito.'},
+      {t:'Le explico que lo corrijo para que mejore y sigo con la clase.', r:'Aclaras tu intención y mantienes el ritmo.', i:'Una frase final de reconocimiento («esto estaba bien») cambia el tono sin quitar contenido.'},
+      {t:'Sigo corrigiendo igual: la retroalimentación es parte del aprendizaje.', r:'Mantienes tu estándar, y eso es coherente.', i:'La misma corrección, dicha en privado y con una pregunta, llega mucho mejor.'}]},
+    {p:3, order:[0,2,1], title:'La respuesta que suena a robot',
+     text:'Un estudiante de {m} responde con una frase muy pulida que parece generada por IA y no puede explicarla. ¿Qué haces?', o:[
+      {t:'Le pido que me la explique con sus palabras y le hago una pregunta de seguimiento, sin acusarlo.', r:'Una conversación de dos minutos muestra qué entendió y deja aprendizaje, no un conflicto.', i:'Si usó IA, pídele que cuente cómo la usó y qué cambió: es el momento de enseñar a declararla.'},
+      {t:'Le digo que trabaje con sus propias ideas y lo revisamos después.', r:'Marcas un límite claro y lo retomas luego.', i:'Convierte «sus propias ideas» en una acción: «cuéntame en una frase cómo lo harías tú».'},
+      {t:'Lo señalo frente al grupo para que sepan que no debe copiarse.', r:'Quieres proteger la honestidad del grupo.', i:'En público no hay imagen que defender. Mejor hablar en privado y con una pregunta.'}]}
+   ],
+   [ /* espacio 6 · Retroalimentar */
+    {p:3, order:[2,0,1], title:'Fuera de plazo',
+     text:'Cierra la entrega de {m} y varios estudiantes piden entregar tarde porque no lo hicieron. ¿Qué haces?', o:[
+      {t:'Les pregunto qué pasó, les recuerdo lo que dice el criterio del curso y les doy una fecha clara de entrega con lo que corresponde.', r:'Escuchar y aplicar una regla conocida es justo y cuida la relación.', i:'Con la política de entregas tardías ya publicada en Canvas, no tienes que negociar cada caso.'},
+      {t:'Aplico lo que dice el criterio del curso, sin más conversación.', r:'Aplicar la regla igual para todos es transparente.', i:'Una pregunta («¿qué pasó?») no cambia la regla, pero te dice si hay algo más serio detrás.'},
+      {t:'Recibo todo sin condiciones para evitar conflictos.', r:'Quieres ser flexible y cuidar la relación.', i:'Sin un criterio claro, quien entrega a tiempo se siente en desventaja. Una regla publicada protege a todos.'}]},
+    {p:3, order:[1,2,0], title:'Retroalimentación sin abrir',
+     text:'Subes la retroalimentación de {m} a Canvas y en la siguiente entrega repiten los mismos errores: nadie la abrió. ¿Qué haces?', o:[
+      {t:'Dedico dos minutos de clase a que cada quien lea su retroalimentación y marque qué va a cambiar en la próxima entrega.', r:'Darle un momento de clase a leerla la vuelve parte del proceso, no un trámite en Canvas.', i:'Pide que escriban una frase: «voy a cambiar…». Solo eso ya sube la lectura.'},
+      {t:'Comento en clase los errores más comunes y les pido que revisen su retroalimentación en casa.', r:'Retroalimentar a todo el grupo ahorra tiempo y orienta.', i:'Pide que en la siguiente entrega indiquen qué cambiaron: queda un motivo para abrirla.'},
+      {t:'Les recuerdo que está en Canvas y que deben revisarla.', r:'Es cierto, y respetas su responsabilidad.', i:'Conviértelo en algo que se hace, no que se recuerda: dos minutos en clase para leerla cambian el hábito.'}]}
+   ],
+   [ /* espacio 7 · Anclar el propósito */
+    {p:4, order:[1,0,2], title:'La pregunta de todos los semestres',
+     text:'Al cerrar la clase de {m}, un estudiante dice: «esta materia no la voy a usar nunca». ¿Qué haces?', o:[
+      {t:'Le pido que me diga qué le gustaría hacer profesionalmente y juntos buscamos dónde aparece esto en ese camino.', r:'Conectar el tema con su propio camino le da un para qué que sí es suyo.', i:'Cierra pidiendo una frase: «esto lo usaría en…». Es un ancla que ellos mismos escriben.'},
+      {t:'Le doy un ejemplo de cómo lo usan profesionales de su carrera.', r:'Un ejemplo real hace visible la utilidad.', i:'Pide a otro estudiante un segundo ejemplo: el para qué se construye en grupo.'},
+      {t:'Le digo que es parte del plan de estudios y que hay que cursarla.', r:'Es verdad, y evita que se alargue la discusión.', i:'Una pregunta («¿qué te gustaría hacer al terminar?») cambia la respuesta de obligación a sentido.'}]},
+    {p:4, order:[2,0,1], title:'Los que se van antes',
+     text:'Cinco minutos antes del cierre de {m}, varios estudiantes empiezan a guardar sus cosas y a salirse. ¿Qué haces?', o:[
+      {t:'Anuncio desde el inicio que el cierre incluye una pregunta que usaremos la siguiente clase, y la hago al final.', r:'Darle valor al cierre hace que se queden: saben que ahí pasa algo que sirve.', i:'Cuéntales el motivo: «el cierre dura cinco minutos y es lo que me ayuda a preparar lo siguiente».'},
+      {t:'Les pido que esperen la última indicación antes de salir.', r:'Una regla clara cuida el cierre.', i:'Dale a la última indicación un contenido útil: una frase, una tarea o una pregunta.'},
+      {t:'Dejo que se vayan si ya terminaron.', r:'Respetas su tiempo y evitas conflicto.', i:'Un cierre breve y con sentido (una pregunta de 30 segundos) cambia la decisión de irse.'}]}
+   ]
+  ];
+  function sitHash(str,i){var h=5381; str=String(str||'').toLowerCase().replace(/\s+/g,' ').trim();
+    for(var k=0;k<str.length;k++) h=((h<<5)+h+str.charCodeAt(k))>>>0;
+    h=(h^Math.imul(i+1,2654435761))>>>0; h^=h>>>15; h=Math.imul(h,2246822519)>>>0; h^=h>>>13; return h>>>0;}
+  function pickSit(mat){
+    if(st.modo==='tec'){st.sit='';return;}
+    var ids=[]; S=S_CLARA.map(function(base,i){var v=sitHash(mat,i)%3; ids.push(v); return v===0?base:S_ALT[i][v-1];}); st.sit=ids.join('');
+  }
+
+  /* ---------- Personajes de bloques ---------- */
+  var HEROES=[{k:'zorro',n:'Zorro',r:'Ágil: prueba cosas rápido'},{k:'buho',n:'Búho',r:'Observador: mira antes de actuar'},{k:'oso',n:'Oso',r:'Constante: avanza paso a paso'}];
+  /* ---------- Ruta «Tecnología con propósito» (celulares, audífonos e IA) ---------- */
+  var S_CLARA=S, STRONG_CLARA=STRONG, RETOS_CLARA=RETOS;
+  var STRONG_TEC=[
+    'Dejas claras las reglas desde el principio, y eso evita conflictos después.',
+    'Declaras cuándo la tecnología suma y cuándo pide atención plena.',
+    'Recuperas la atención con preguntas, sin confrontar.',
+    'Conversas antes de escalar y usas la ruta cuando hace falta.',
+    'Predicas con el ejemplo: declaras tu propio uso de IA.'
+  ];
+  var RETOS_TEC=[
+    'En tu próxima primera sesión, dedica diez minutos a construir con el grupo el acuerdo de dispositivos e IA y publícalo en Canvas.',
+    'En una actividad, marca qué momentos son de atención plena y cuáles con dispositivo o IA, y avísalo antes de empezar.',
+    'La próxima vez que veas distracción, haz una pausa de un minuto y pregunta al grupo: «¿qué necesitamos para volver a enfocarnos?».',
+    'Ante una entrega que suene a IA, pide al estudiante que te la explique en dos minutos antes de decidir nada.',
+    'Agrega una línea a tus materiales: «elaborado con apoyo de IA y revisado por mí».'
+  ];
+  var S_TEC=[
+    {p:0, order:[1,0,2], title:'Las reglas de a bordo',
+     text:'Primera semana de tu clase de {m}. Aún no hablas de celulares, audífonos ni IA. ¿Qué haces?', o:[
+      {t:'Armo con el grupo un acuerdo: cuándo se usan, cuándo no y qué pasa si no se cumple. Lo publico en Canvas.', r:'Un acuerdo que ayudaron a construir se cumple más, y en Canvas queda para todos.', i:'Dedica diez minutos de la primera sesión y pregunta: «¿qué necesitas para concentrarte?». Las reglas salen más justas.'},
+      {t:'Les presento mis reglas el primer día y las subo a Canvas.', r:'Claridad desde el inicio evita muchos conflictos, y Canvas deja constancia.', i:'Cierra con «¿falta algo o algo no tiene sentido?». Así el acuerdo deja de ser solo tuyo.'},
+      {t:'Espero a ver si surge un problema para poner reglas.', r:'No imponer de entrada también es una postura, y cada grupo es distinto.', i:'Declarar el acuerdo desde el inicio ayuda: cinco minutos al arrancar te ahorran la conversación incómoda después.'}]},
+    {p:1, order:[2,0,1], title:'El permiso de la IA',
+     text:'Vas a dejar un trabajo en {m} y los estudiantes pueden usar IA. ¿Cómo lo planteas?', o:[
+      {t:'Digo en qué partes pueden usarla, en cuáles no y que la declaren y citen. Lo publico con el Aviso de IA.', r:'Declarar el alcance vuelve a la IA una herramienta de aprendizaje y no un secreto.', i:'Pide que anexen el prompt que usaron: ves cómo piensan, no solo qué entregan.'},
+      {t:'Les pido que la usen con responsabilidad y que no copien.', r:'Es un buen principio y ya orienta.', i:'Cambia «con responsabilidad» por una regla concreta: qué sí, qué no y cómo declararlo.'},
+      {t:'Les prohíbo usarla y aviso que revisaré con un detector.', r:'Se nota que te importa la originalidad.', i:'Los detectores son imprecisos y la prohibición total empuja a esconderla. Declarar el alcance funciona mejor.'}]},
+    {p:1, order:[0,2,1], title:'Cada cosa en su momento',
+     text:'En una práctica de {m}, unos usan el celular para buscar y otros para chatear. ¿Qué haces?', o:[
+      {t:'Aviso antes qué momentos son con dispositivo y cuáles de atención plena, y lo dejo marcado en la actividad.', r:'Cuando declaras el momento, la regla es de la actividad y no una pelea tuya.', i:'Una línea en la actividad («celular: solo en la fase 2») evita casi todas las discusiones.'},
+      {t:'Paso por las mesas y pido guardar el celular a quien no lo usa para la tarea.', r:'Intervenir cerca y sin interrumpir al grupo cuida la dinámica.', i:'Si lo avisas al inicio de la práctica, no tienes que corregir mesa por mesa.'},
+      {t:'Pido que todos dejen los celulares en mi escritorio durante la práctica.', r:'Se nota que quieres proteger el enfoque.', i:'No retenemos dispositivos: quedan a tu cargo y generan conflicto. Mejor declara qué momentos los necesitan y pide guardarlos en los demás.'}]},
+    {p:2, order:[1,2,0], title:'Audífonos en la ronda',
+     text:'En una discusión de {m}, un estudiante sigue con audífonos y no participa. ¿Qué haces?', o:[
+      {t:'Me acerco en privado, le pregunto qué necesita para integrarse y le pido quitárselos durante la dinámica.', r:'Una pregunta en privado devuelve la responsabilidad sin exponerlo.', i:'Pregunta antes de pedir: puede haber una razón de salud o accesibilidad, y debe avisarse al docente y a la mentora (figura de acompañamiento).'},
+      {t:'Pido a todo el grupo guardar los audífonos durante la discusión.', r:'Una indicación general cuida a todos sin señalar a nadie.', i:'Los audífonos se atienden con el mismo criterio que el celular: importa el impacto en el aprendizaje.'},
+      {t:'Lo señalo frente al grupo y le pido que se los quite ya.', r:'Atender la distracción rápido protege la discusión.', i:'En privado y breve funciona mejor: sin público no hay imagen que defender, y se evita la confrontación.'}]},
+    {p:2, order:[2,0,1], title:'Pantallas en plena explicación',
+     text:'Explicas algo clave de {m} y varias personas miran el celular. ¿Qué haces?', o:[
+      {t:'Hago una pausa y pregunto al grupo: «¿qué necesitamos para volver a enfocarnos?». Cambio la dinámica un momento.', r:'Devuelves la pregunta al grupo y recuperas atención sin confrontar.', i:'Una pausa de un minuto con una dinámica corta (parejas, un caso) suele bastar.'},
+      {t:'Hago una pregunta directa a quienes están en el celular para reenganchar.', r:'Reenganchar con una pregunta es mejor que regañar.', i:'Que la pregunta sea sobre el tema y no una trampa: el objetivo es volver, no exhibir.'},
+      {t:'Sigo; es su decisión si atienden.', r:'Respetar la autonomía es parte del enfoque profesional.', i:'La autonomía se forma con acompañamiento: una pausa de un minuto con una pregunta al grupo ayuda a decidir enfocarse.'}]},
+    {p:3, order:[0,1,2], title:'Cuando se repite',
+     text:'Un estudiante usa el celular en tu clase de {m}. Ya lo orientaste y vuelve a pasar. ¿Qué haces?', o:[
+      {t:'Converso con él: recuerdo el acuerdo de Canvas, pedimos un compromiso y, si persiste, escalo a la mentora (figura de acompañamiento) con detalles.', r:'Esa es la ruta: reflexión primero y detalles claros si hay que escalar.', i:'Al escalar, anota frecuencia, qué afectó, si ya lo orientaste, el contexto y su disposición a ajustar.'},
+      {t:'Hablo con él al terminar la clase y aviso a la mentora (figura de acompañamiento).', r:'Hablarlo en privado y avisar a quien acompaña es correcto.', i:'Antes de avisar, pide un compromiso concreto: cambia más que un reporte.'},
+      {t:'Le retiro el celular hasta que termine la clase.', r:'Proteges la clase.', i:'No retenemos ni confrontamos por la posesión del dispositivo. La ruta es orientar, conversar y escalar a la mentora (figura de acompañamiento).'}]},
+    {p:3, order:[2,1,0], title:'El trabajo demasiado perfecto',
+     text:'Recibes un trabajo de {m} que suena demasiado perfecto y sospechas que fue IA. ¿Qué haces?', o:[
+      {t:'Converso con el estudiante: le pido que me explique su trabajo, lo contrasto con lo entregado y retroalimento.', r:'Contrastar entrega y explicación es más confiable que cualquier detector.', i:'Dos minutos de «cuéntame cómo llegaste a esto» dicen más que una herramienta.'},
+      {t:'Lo reviso con Turnitin y con eso converso con el estudiante.', r:'Usarlo como apoyo y conversar es lo indicado.', i:'Turnitin detecta IA solo en inglés y no es concluyente: la conversación pesa más.'},
+      {t:'Le pongo cero: se nota que fue IA.', r:'Defiendes la integridad académica.', i:'Sin conversación ni evidencia puede ser injusto. Si hay una falta a la integridad, se sigue el procedimiento institucional de integridad académica, después de hablar con el estudiante.'}]},
+    {p:4, order:[1,0,2], title:'Tu propio ejemplo',
+     text:'Preparaste material para {m} con apoyo de IA y lo vas a compartir. ¿Qué haces?', o:[
+      {t:'Lo reviso, indico que lo hice con apoyo de IA y les cuento cómo lo usé.', r:'Modelas la transparencia que les pides. Es el mejor ejemplo.', i:'Aprovecha para mostrar cómo verificaste los datos: es una mini lección de criterio.'},
+      {t:'Lo reviso con cuidado antes de compartirlo.', r:'Revisar protege la calidad y la veracidad.', i:'Agrega una línea: «elaborado con apoyo de IA y revisado por mí». Con eso cumples y das ejemplo.'},
+      {t:'Lo comparto sin decir nada; es para ayudarles.', r:'La intención de ayudar es lo que cuenta.', i:'Lo que pedimos declarar a los estudiantes también aplica a nosotros. Una línea basta y evita dudas.'}]}
+  ];
+  var RESC_T=[
+    {q:'En Tecmilenio, ¿qué atiende el docente cuando un estudiante usa su dispositivo?',o:['La conducta del estudiante y su impacto en el aprendizaje','Que ningún dispositivo esté a la vista','Que todos dejen el celular en el escritorio'],a:'No se sanciona por tener el dispositivo: se atiende la conducta y su impacto en el aprendizaje.'},
+    {q:'¿Dónde se declara y documenta el acuerdo de uso de dispositivos e IA con el grupo?',o:['En Canvas, en Anuncios','En un correo personal a cada estudiante','Solo de forma verbal en clase'],a:'Se declara y documenta en Canvas; para la IA, en Anuncios con el Aviso de Inteligencia Artificial.'},
+    {q:'En Profesional, si la conducta persiste después de orientar y conversar, ¿a quién se escala con los detalles?',o:['A la mentora (figura de acompañamiento)','A las madres y padres del estudiante','Directo al Reglamento, sin conversar antes'],a:'A la mentora (figura de acompañamiento), que da seguimiento. A familias no se comunica como práctica ordinaria en Profesional.'},
+    {q:'¿Cómo se consideran las herramientas de detección de IA en la escritura?',o:['Una guía, no una prueba definitiva','Prueba suficiente para sancionar','Un detector exacto en cualquier idioma'],a:'Son imprecisas: sirven de apoyo, pero se complementan con conversación y otras estrategias.'}
+  ];
+  var PH_CLARA=PH, PH_TEC=[
+    {guide:'Brújula', piece:'Quilla',  fase:'Contextualizar',       res:'Madero', ok:' puesta'},
+    {guide:'Taller',  piece:'Casco',   fase:'Llevar a la práctica', res:'Tablón', ok:' puesto'},
+    {guide:'Eco',     piece:'Velas',   fase:'Activar el diálogo',   res:'Lona',   ok:' puestas'},
+    {guide:'Espejo',  piece:'Timón',   fase:'Retroalimentar',       res:'Cuerda', ok:' puesto'},
+    {guide:'Ancla',   piece:'Ancla',   fase:'Anclar el propósito',  res:'Hierro', ok:' puesta'}
+  ];
+  function applyMode(){
+    PH=(st.modo==='tec')?PH_TEC:PH_CLARA;
+    if(st.modo==='tec'){S=S_TEC;STRONG=STRONG_TEC;RETOS=RETOS_TEC;}
+    else{S=S_CLARA;STRONG=STRONG_CLARA;RETOS=RETOS_CLARA;}
+  }
+
+  var OUTC='#2A1650', HB=30, KS=.235;
+function rrp(c,x,y,w,h,r){c.beginPath();c.moveTo(x+r,y);c.arcTo(x+w,y,x+w,y+h,r);c.arcTo(x+w,y+h,x,y+h,r);c.arcTo(x,y+h,x,y,r);c.arcTo(x,y,x+w,y,r);c.closePath();}
+function FL(c,fill,lw){c.fillStyle=fill;c.fill();if(lw!==0){c.lineWidth=lw||6;c.strokeStyle=OUTC;c.lineJoin='round';c.lineCap='round';c.stroke();}}
+function RR(c,x,y,w,h,r,fill,lw){rrp(c,x,y,w,h,r);FL(c,fill,lw);}
+function EL(c,x,y,rx,ry,fill,lw,rot){c.beginPath();c.ellipse(x,y,rx,ry,rot||0,0,6.2832);FL(c,fill,lw);}
+function POLY(c,pts,fill,lw){c.beginPath();c.moveTo(pts[0][0],pts[0][1]);for(var i=1;i<pts.length;i++)c.lineTo(pts[i][0],pts[i][1]);c.closePath();FL(c,fill,lw);}
+function EYES(c,y,dx,rx,ry,look){[-1,1].forEach(function(s){EL(c,s*dx,y,rx,ry,'#fff',4);EL(c,s*dx+look,y+2,rx*.55,ry*.62,OUTC,0);EL(c,s*dx+look+2,y-2,2.2,2.2,'#fff',0);});}
+function SMILE(c,y,w){c.beginPath();c.arc(0,y,w,.25,Math.PI-.25);c.lineWidth=4;c.strokeStyle=OUTC;c.lineCap='round';c.stroke();}
+var SPEC={
+  zorro:{k:'fox',  hd:'#FF7A2F',bd:'#5A3FB8',bl:'#8E78E8',ac:'#FFD166'},
+  buho: {k:'owl',  hd:'#C79A6B',bd:'#D9BE98',bl:'#EBDDBF',ac:'#5BC0BE'},
+  oso:  {k:'bear', hd:'#B07A5F',bd:'#8E5C46',bl:'#F0D6BF',ac:'#F28482'},
+  g0:{k:'explorer',hd:'#5BC0BE',bd:'#2E8F96',bl:'#BFE9E8',ac:'#3A2A6E',f:1,hr:'#3B2433'},
+  g1:{k:'builder', hd:'#F4A261',bd:'#E8742A',bl:'#FFF3A8',ac:'#FFD166'},
+  g2:{k:'radio',   hd:'#B388EB',bd:'#6B3FA0',bl:'#8A5FC4',ac:'#FFB703',f:1,hr:'#2B1B4A'},
+  g3:{k:'goggles', hd:'#F28482',bd:'#B04A57',bl:'#8A3A47',ac:'#BCD3F2',f:1,hr:'#5A2A3A'},
+  g4:{k:'keeper',  hd:'#F6E3B4',bd:'#F0B429',bl:'#C98F10',ac:'#26407A'},
+  e0:{k:'student',hd:'#F2C6A0',bd:'#5BC0BE',bl:'#FFFFFF',ac:'#F4A261',hr:'#3A2418',f:1},
+  e1:{k:'student',hd:'#C68E6A',bd:'#F28482',bl:'#FFFFFF',ac:'#5A3FB8',hr:'#1F1A2E'},
+  e2:{k:'student',hd:'#8D5A3B',bd:'#FFD166',bl:'#FFFFFF',ac:'#2E8F96',hr:'#2A1B14',f:1},
+  e3:{k:'student',hd:'#F2C6A0',bd:'#B388EB',bl:'#FFFFFF',ac:'#E8742A',hr:'#C98F10'},
+  e4:{k:'student',hd:'#D9A47A',bd:'#8EE3EF',bl:'#FFFFFF',ac:'#F28482',hr:'#4A2C2A',f:1},
+  e5:{k:'student',hd:'#A66B4B',bd:'#B9B3DC',bl:'#FFFFFF',ac:'#FFD166',hr:'#1F1A2E'}
+};
+function drawCharU(c,cx,fy,K,o){
+  var sp=SPEC[o.k], k=sp.k, t=o.t||0, tm=o.time||0, air=!!o.air, mv=!!o.moving&&!air;
+  c.save(); c.translate(cx,fy); c.scale(K*((o.face<0)?-1:1),K);
+  var sw=mv?Math.sin(t*10):0, bob=mv?-Math.abs(Math.sin(t*10))*2.5:(air?-3:0), arm=air?-12:sw*7;
+  var bw=(k==='bear')?58:48, shoe=(k==='owl')?'#FFB703':'#2A1650', lgc=(k==='owl')?'#FFB703':'#3A2A6E';
+  var OF=(k==='fox'||k==='owl'||k==='bear')?(st.modo==='tec'?'b':'f'):'';
+  if(OF==='b'){ if(k!=='owl') lgc=sp.hd; shoe='#C98B5B'; }
+  if(OF==='f'){ lgc='#4A3A2A'; shoe='#5A3A22'; }
+  // detrás
+  if(k==='fox'){var wg=Math.sin(tm*(mv?9:3))*10;c.save();c.translate(-34,-26);c.rotate(-.5+wg*.02);EL(c,-14,0,30,15,sp.hd,6);EL(c,-36,-2,10,8,'#fff',0);c.restore();}
+  if(k==='student'){RR(c,-bw/2-10,-66+bob,16,36,6,sp.ac,5);}
+  if(OF==='f'){RR(c,-bw/2-15,-70+bob,21,42,8,'#8A5A3A',5);RR(c,-bw/2-13,-76+bob,17,9,4,'#C9A06B',4);}
+  if(k==='explorer'){RR(c,-bw/2-16,-70+bob,22,44,8,'#8A5A3A',5);RR(c,-bw/2-12,-62+bob,14,8,3,'#B07A52',0);}
+  if(k==='keeper'||k==='goggles'){RR(c,-bw/2-6,-68+bob,14,60,6,k==='keeper'?'#C98F10':'#8A3A47',5);}
+  // piernas
+  [-1,1].forEach(function(s){var lx=s*13+s*sw*7, lift=(air&&s>0)?-6:0;
+    RR(c,lx-8,-26+lift,16,26,6,lgc,5); RR(c,lx-11+(s>0?3:0),-9+lift,22,11,5,shoe,5);});
+  // cuerpo
+  RR(c,-bw/2,-72+bob,bw,54,16,OF==='b'?'#2B4C8C':(OF==='f'?'#2F6B4F':sp.bd),6);
+  if((k==='fox'||k==='bear'||k==='owl')&&!OF){RR(c,-bw/2+8,-50+bob,bw-16,28,10,sp.bl,0);}
+  if(k==='fox'&&!OF){RR(c,-bw/2-2,-74+bob,bw+4,13,6,sp.ac,5);RR(c,bw/2-14,-66+bob,12,26,5,sp.ac,4);}
+  if(k==='bear'&&!OF){RR(c,-bw/2-2,-74+bob,bw+4,13,6,sp.ac,5);RR(c,bw/2-14,-66+bob,12,24,5,sp.ac,4);}
+  if(k==='owl'&&!OF){RR(c,-bw/2-2,-74+bob,bw+4,13,6,sp.ac,5);for(var q=0;q<3;q++){c.beginPath();c.arc(-8+q*8,-42+bob,4,0,Math.PI);c.lineWidth=2.5;c.strokeStyle='#B39468';c.stroke();}}
+  if(k==='student'){RR(c,-bw/2+2,-70+bob,bw-4,10,4,sp.bl,0);}
+  if(OF==='b'){[-62,-50,-38].forEach(function(y){RR(c,-bw/2+3,y+bob,bw-6,6,2,'#FFFFFF',0);});POLY(c,[[-12,-72+bob],[12,-72+bob],[0,-50+bob]],'#E04848',4);RR(c,-bw/2+2,-34+bob,bw-4,17,6,'#F0DDA0',5);}
+  if(OF==='f'){RR(c,-3,-70+bob,6,50,2,'#1F4A36',0);[-1,1].forEach(function(sd){RR(c,sd*13-7,-42+bob,14,12,3,'#256048',3);});RR(c,-bw/2-2,-77+bob,bw+4,13,6,'#E04848',5);RR(c,bw/2-12,-68+bob,11,28,5,'#E04848',4);}
+  if(k==='explorer'){RR(c,-bw/2+2,-70+bob,bw-4,10,4,sp.bl,0);RR(c,-5,-60+bob,10,40,3,'#1F5C63',0);for(var b2=0;b2<3;b2++){EL(c,-14,-52+bob+b2*10,2.4,2.4,'#FFD166',0);EL(c,14,-52+bob+b2*10,2.4,2.4,'#FFD166',0);}}
+  if(k==='builder'){RR(c,-bw/2+2,-52+bob,bw-4,8,2,sp.bl,0);RR(c,-bw/2+2,-34+bob,bw-4,8,2,sp.bl,0);RR(c,-4,-70+bob,8,50,2,'#C75B1B',0);}
+  if(k==='radio'){RR(c,-14,-68+bob,28,12,5,'#4C2A80',0);RR(c,-14,-40+bob,28,12,5,sp.bl,0);}
+  if(k==='goggles'){RR(c,-bw/2+2,-70+bob,bw-4,12,4,sp.bl,0);RR(c,-5,-58+bob,10,36,3,sp.bl,0);}
+  if(k==='keeper'){RR(c,-5,-70+bob,10,50,3,sp.bl,0);for(var b3=0;b3<2;b3++){EL(c,-15,-56+bob+b3*18,2.6,2.6,OUTC,0);EL(c,15,-56+bob+b3*18,2.6,2.6,OUTC,0);}}
+  // brazos
+  [-1,1].forEach(function(s){var ay=-66+bob+(s>0?arm:-arm)*.6;
+    var armc=(k==='owl')?'#9C7A4B':sp.bd; EL(c,s*(bw/2+5),ay+16,9,18,armc,5,s*.12);
+    if(k!=='owl') EL(c,s*(bw/2+8),ay+32,8,8,sp.hd,4); });
+  // cabeza
+  var hy=-98+bob, hw=(k==='bear')?43:41;
+  if(sp.f){RR(c,-hw-5,hy-8,2*hw+10,58,20,sp.hr,6);}
+  if(k==='fox'){[-1,1].forEach(function(s){POLY(c,[[s*10,hy-26],[s*30,hy-66],[s*42,hy-18]],sp.hd,6);POLY(c,[[s*19,hy-28],[s*30,hy-52],[s*35,hy-24]],'#5A2A1A',0);});}
+  if(k==='owl'){[-1,1].forEach(function(s){POLY(c,[[s*14,hy-26],[s*30,hy-52],[s*38,hy-14]],'#8A6244',6);});}
+  if(k==='bear'){[-1,1].forEach(function(s){EL(c,s*32,hy-26,14,14,sp.hd,6);EL(c,s*32,hy-25,7,7,sp.bl,0);});}
+  EL(c,0,hy,hw,35,sp.hd,6);
+  if(k==='fox'){EL(c,0,hy+12,30,21,'#FFF3E6',0);EYES(c,hy-6,16,7.5,10,2);EL(c,0,hy+5,6.5,4.5,OUTC,0);SMILE(c,hy+10,8);}
+  else if(k==='owl'){[-1,1].forEach(function(s){EL(c,s*17,hy-4,17,17,'#F6EAD2',4);EL(c,s*17+1,hy-3,9,10,OUTC,0);EL(c,s*17+4,hy-8,3.4,3.4,'#fff',0);});POLY(c,[[-6,hy+6],[6,hy+6],[0,hy+20]],'#FFB703',4);}
+  else if(k==='bear'){EYES(c,hy-8,17,6.5,9,1.5);EL(c,0,hy+12,19,15,sp.bl,0);EL(c,0,hy+5,7,5,OUTC,0);SMILE(c,hy+14,7);}
+  else{ EYES(c,hy-4,16,7.5,10,2); SMILE(c,hy+12,10); c.globalAlpha=.5;EL(c,-28,hy+10,6,4,'#FF9FA6',0);EL(c,28,hy+10,6,4,'#FF9FA6',0);c.globalAlpha=1;
+    if(sp.f){[-1,1].forEach(function(s){c.beginPath();c.moveTo(s*24,hy-12);c.lineTo(s*29,hy-18);c.moveTo(s*20,hy-14);c.lineTo(s*23,hy-21);c.lineWidth=3;c.strokeStyle=OUTC;c.lineCap='round';c.stroke();EL(c,s*hw,hy+14,3.4,3.4,'#FFD166',2);});} }
+  // accesorios cabeza
+  if(OF==='b'){RR(c,-40,hy-50,80,30,13,'#FFFFFF',6);RR(c,-42,hy-26,84,11,4,'#2B4C8C',5);RR(c,6,hy-19,44,9,4,'#1F1A2E',4);EL(c,0,hy-37,7.5,7.5,'#FFD166',3);EL(c,0,hy-37,2.6,2.6,'#B07A00',0);}
+  if(OF==='f'){c.beginPath();c.moveTo(-43,hy-14);c.quadraticCurveTo(-46,hy-66,0,hy-64);c.quadraticCurveTo(46,hy-66,43,hy-14);c.closePath();FL(c,'#F4A261',6);RR(c,-46,hy-24,92,13,5,'#E8742A',5);EL(c,0,hy-66,8,8,'#FFD166',4);
+    RR(c,-14,hy-42,28,15,5,'#2A1650',0);EL(c,9,hy-35,7,7,'#FFF3C4',3);c.globalAlpha=.28;EL(c,28,hy-33,22,12,'#FFF3C4',0);c.globalAlpha=1;}
+  if(k==='student'){c.beginPath();c.moveTo(-hw,hy-10);c.quadraticCurveTo(-hw,hy-48,0,hy-46);c.quadraticCurveTo(hw,hy-48,hw,hy-10);c.quadraticCurveTo(0,hy-26,-hw,hy-10);c.closePath();FL(c,sp.hr,5);}
+  if(k==='explorer'){RR(c,-52,hy-30,104,15,7,sp.ac,6);c.beginPath();c.moveTo(-32,hy-28);c.quadraticCurveTo(0,hy-90,32,hy-28);c.closePath();FL(c,sp.ac,6);RR(c,-32,hy-40,64,8,2,'#FFB703',0);
+    c.beginPath();c.moveTo(20,hy-62);c.quadraticCurveTo(46,hy-80,38,hy-96);c.quadraticCurveTo(22,hy-84,14,hy-62);c.closePath();FL(c,'#F28482',4);}
+  if(k==='builder'){c.beginPath();c.moveTo(-44,hy-16);c.quadraticCurveTo(-44,hy-58,0,hy-58);c.quadraticCurveTo(44,hy-58,44,hy-16);c.closePath();FL(c,sp.ac,6);RR(c,-50,hy-20,100,10,5,'#E5A800',5);RR(c,-7,hy-66,14,16,4,sp.ac,5);EL(c,-18,hy-40,6,4,'#FFF3C4',0);}
+  if(k==='radio'){c.beginPath();c.arc(0,hy-4,48,Math.PI*1.08,Math.PI*1.92);c.lineWidth=9;c.strokeStyle=OUTC;c.stroke();c.lineWidth=4;c.strokeStyle='#4C2A80';c.stroke();
+    [-1,1].forEach(function(s){RR(c,s*46-8,hy-14,16,32,7,'#4C2A80',5);});c.beginPath();c.moveTo(-46,hy-14);c.lineTo(-56,hy-64);c.lineWidth=5;c.strokeStyle=OUTC;c.stroke();EL(c,-56,hy-68,8,8,sp.ac,4);}
+  if(k==='goggles'){RR(c,-50,hy-18,100,26,10,OUTC,0);[-1,1].forEach(function(s){EL(c,s*22,hy-5,17,13,sp.ac,4);EL(c,s*22+3,hy-4,6,6,OUTC,0);EL(c,s*22-5,hy-9,3.5,3.5,'#fff',0);});RR(c,-46,hy-44,92,22,10,'#B04A57',6);RR(c,-30,hy-42,30,6,3,'#D26B7A',0);}
+  if(k==='goggles'&&sp.f){POLY(c,[[28,hy-40],[44,hy-50],[44,hy-30]],'#FFD166',4);POLY(c,[[28,hy-40],[12,hy-50],[12,hy-30]],'#FFD166',4);EL(c,28,hy-40,5,5,'#F2A900',3);}
+  if(k==='keeper'){EL(c,0,hy+26,27,19,'#F4F4F4',5);EL(c,0,hy+14,10,4,'#E0A0A0',0);c.beginPath();c.moveTo(-46,hy-14);c.quadraticCurveTo(-44,hy-62,0,hy-60);c.quadraticCurveTo(44,hy-62,46,hy-14);c.closePath();FL(c,sp.ac,6);RR(c,-60,hy-22,120,13,6,sp.ac,6);POLY(c,[[-58,hy-12],[-46,hy-12],[-50,hy+14]],sp.ac,5);}
+  // objetos en la mano
+  var hx=bw/2+16, hyy=-32+bob;
+  if(k==='explorer'){EL(c,hx,hyy,17,17,'#FFD166',5);EL(c,hx,hyy,11,11,'#FFF3C4',0);c.save();c.translate(hx,hyy);c.rotate(Math.sin(tm*2)*.9+.4);POLY(c,[[0,-9],[3,0],[-3,0]],'#D94B4B',0);POLY(c,[[0,9],[3,0],[-3,0]],'#6B6B7B',0);c.restore();}
+  if(k==='builder'){c.save();c.translate(hx-2,hyy-6);c.rotate(Math.sin(tm*3)*.5-.2);RR(c,-4,-34,8,50,3,'#8A5A3A',5);RR(c,-18,-46,36,18,5,'#9C96C8',5);c.restore();}
+  if(k==='radio'){RR(c,hx-8,hyy-8,14,18,4,'#6B6B7B',5);POLY(c,[[hx+4,hyy-10],[hx+30,hyy-24],[hx+30,hyy+24],[hx+4,hyy+12]],sp.ac,5);
+    for(var w=0;w<3;w++){var ph=((tm*1.6+w*.33)%1);c.globalAlpha=1-ph;c.beginPath();c.arc(hx+30,hyy,10+ph*26,-.7,.7);c.lineWidth=4;c.strokeStyle='#fff';c.stroke();}c.globalAlpha=1;}
+  if(k==='goggles'){c.save();c.translate(hx,hyy);c.rotate(-.5+Math.sin(tm*1.5)*.1);RR(c,-6,-8,48,16,5,'#E5A800',5);RR(c,36,-12,16,24,5,'#C98F10',5);EL(c,52,0,7,10,sp.ac,4);c.restore();}
+  if(k==='keeper'){var fl=1+Math.sin(tm*11)*.08;var gl=c.createRadialGradient(hx,hyy,4,hx,hyy,70);gl.addColorStop(0,'rgba(255,209,102,.5)');gl.addColorStop(1,'rgba(255,209,102,0)');c.fillStyle=gl;c.fillRect(hx-70,hyy-70,140,140);
+    c.beginPath();c.arc(hx,hyy-24,12,Math.PI,0);c.lineWidth=5;c.strokeStyle=OUTC;c.stroke();RR(c,hx-14,hyy-20,28,40,6,'#7A5A33',5);RR(c,hx-9,hyy-14,18,28,4,'#FFE9A8',0);c.save();c.translate(hx,hyy+4);c.scale(fl,fl);c.beginPath();c.moveTo(0,-12);c.quadraticCurveTo(10,0,0,10);c.quadraticCurveTo(-10,0,0,-12);c.fillStyle='#FF9F1C';c.fill();c.restore();}
+  c.restore();
+}
+function drawChar(c,x,y,o){ drawCharU(c,x+6,y+HB,KS,o); }
+
+  function paintPortraits(root){
+    var cs=root.querySelectorAll('canvas.pt');
+    for(var i=0;i<cs.length;i++){
+      var c=cs[i], cw=c.getBoundingClientRect().width||44, dpr=Math.min(window.devicePixelRatio||1,3), pw=Math.round(cw*dpr);
+      if(pw!==c.width){c.width=pw;c.height=Math.round(pw*56/40);}
+      var g=c.getContext('2d'); g.imageSmoothingEnabled=false; g.setTransform(1,0,0,1,0,0); g.clearRect(0,0,c.width,c.height); g.setTransform(c.width/40,0,0,c.width/40,0,0);
+      drawCharU(g,20,53,.3,{k:c.getAttribute('data-k'),face:1,t:0,time:0.3});
+    }
+  }
+  function portrait(k){return '<canvas class="pt" width="40" height="56" data-k="'+k+'" aria-hidden="true"></canvas>';}
+
+  /* ---------- Mundo ---------- */
+  var XS=[]; for(var i0=0;i0<8;i0++) XS.push(240+210*i0);
+  var CAMPX=XS[7]+330, WORLD_W=CAMPX+170;
+  var blocks=[], coins=[], enemies=[], nodes=[], parts=[];
+  function hs(n){n=(n^61)^(n>>>16);n=(n+(n<<3))|0;n=n^(n>>>4);n=Math.imul(n,0x27d4eb2d);n=n^(n>>>15);return (n>>>0)/4294967296;}
+  function addBlock(x,y,type,z){z=z||8;blocks.push({x:x,y:y,w:z,h:z,type:type,used:false,bump:0});}
+  function addCoins(list){list.forEach(function(p){coins.push({x:p[0],y:p[1],got:false});});}
+  function buildWorld(){
+    blocks=[];coins=[];enemies=[];nodes=[];
+    for(var k=0;k<8;k++){
+      var left=k===0?70:XS[k-1]+80, right=XS[k]-70, c=Math.round((left+right)/2);
+      if(k%3===0){
+        addBlock(c-14,GY-50,'q',14);addBlock(c,GY-50,'b',14);addBlock(c+14,GY-50,'q',14);
+        addCoins([[c-24,GY-70],[c-12,GY-76],[c,GY-78],[c+12,GY-76],[c+24,GY-70]]);
+      } else if(k%3===1){
+        addBlock(c-14,GY-14,'s',14);addBlock(c,GY-14,'s',14);addBlock(c,GY-28,'s',14);addBlock(c+14,GY-14,'s',14);addBlock(c+14,GY-28,'s',14);
+        addCoins([[c+10,GY-50],[c+26,GY-54],[c-16,GY-42]]);
+      } else {
+        addBlock(c-7,GY-50,'q',14);
+        addCoins([[c-40,GY-16],[c-28,GY-16],[c-16,GY-16],[c+16,GY-16],[c+28,GY-16],[c-10,GY-76],[c+4,GY-76]]);
+      }
+      enemies.push({x:c+(k%2?-34:34),y:GY-14,w:14,h:14,ox:c+(k%2?-34:34),dir:1,dead:0,range:22});
+      if(k>=3) enemies.push({x:c+(k%2?50:-50),y:GY-14,w:14,h:14,ox:c+(k%2?50:-50),dir:-1,dead:0,range:18});
+    }
+    for(var i=0;i<8;i++) nodes.push({x:XS[i]+58,p:S[i].p,taken:false});
+  }
+
+  /* ---------- Estado ---------- */
+  var st={mode:'intro',nombre:'',materia:'',hero:'zorro',idx:0,picks:[],tips:[],counts:[0,0,0,0,0],chispas:0,answered:false,
+          built:[false,false,false,false,false],variant:[2,2,2,2,2],builtAt:[0,0,0,0,0],flash:[0,0,0,0,0],dawn:0,dawnGo:false,
+          time:0,cam:0,timers:[],hintT:0,tipsSeen:0,lives:3,deaths:0,rescues:[],rescUsed:[],modo:'clara'};
+  var P={x:36,y:GY-30,w:12,h:30,vx:0,vy:0,on:true,face:1,t:0,hurt:0,walking:false};
+  var inp={l:false,r:false,jump:false,jumpQ:false};
+  var app=document.getElementById('app'), chip=document.getElementById('chip'), inv=document.getElementById('inv'),
+      fx=document.getElementById('fx'), cap=document.getElementById('cap'), bk=document.getElementById('bk'),
+      bkn=document.getElementById('bkn'), newtag=document.getElementById('newtag'), modal=document.getElementById('modal'),
+      modalbody=document.getElementById('modalbody');
+
+  function esc(s){return String(s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+  function T(s,m){return esc(s).replace('{m}','<strong>'+esc(m)+'</strong>');}
+  function later(a,b){var fn=typeof a==='function'?a:b, ms=typeof a==='function'?b:a; st.timers.push(setTimeout(fn,REDUCED?0:ms));}
+  function drawInv(){
+    var h='<span class="res hearts" id="hearts" title="Vidas" aria-label="Vidas: '+st.lives+' de 3">';
+    for(var hh=0;hh<3;hh++) h+='<svg viewBox="0 0 16 16" aria-hidden="true" style="width:20px;height:20px"><path d="M8 14 C2 9.5 1 6.5 2.6 4.4 C4.2 2.6 7 3 8 5.4 C9 3 11.8 2.6 13.4 4.4 C15 6.5 14 9.5 8 14Z" fill="'+(hh<st.lives?'#FF4D6D':'#4A3560')+'" stroke="#2A1650" stroke-width="1.2" stroke-linejoin="round"/></svg>';
+    h+='</span>';
+    h+=PH.map(function(p,i){return '<span class="res" id="res'+i+'" title="'+p.res+'"><svg viewBox="0 0 16 16" aria-hidden="true">'+ICON[i]+'</svg><b>'+st.counts[i]+'</b></span>';}).join('');
+    h+='<span class="res" id="resS" title="Chispas"><svg viewBox="0 0 16 16" aria-hidden="true">'+ICON_SPARK+'</svg><b>'+st.chispas+'</b></span>';
+    inv.innerHTML=h;
+  }
+  function bump(id){var r=document.getElementById(id); if(r){r.classList.remove('bump'); void r.offsetWidth; r.classList.add('bump');}}
+  function floatMsg(txt){
+    var sp=document.createElement('span'); sp.textContent=txt; fx.innerHTML=''; fx.appendChild(sp);
+    setTimeout(function(){ if(sp.parentNode) sp.parentNode.removeChild(sp); },1400);
+  }
+  function boom(x,y,col,n){for(var i=0;i<n;i++){parts.push({x:x,y:y,vx:(Math.random()-.5)*70,vy:-Math.random()*70-10,l:.7+Math.random()*.4,c:col});}}
+
+  /* ---------- Cuaderno ---------- */
+  function tipItem(x,withPhase){
+    return '<li class="tip"><b class="tt">'+esc(x.t)+(withPhase&&PH[x.p]?' <span class="ph">· '+esc(PH[x.p].fase)+'</span>':'')+'</b>'+
+      '<span class="row1"><em>Situación:</em> '+esc(x.sit)+'</span>'+
+      '<span class="row1"><em>Tú elegiste:</em> «'+esc(x.ch)+'»</span>'+
+      '<span class="row2"><em>Truco para llevarlo más lejos:</em> '+esc(x.i)+'</span></li>';
+  }
+  function tipsHTML(){
+    if(!st.tips.length) return '<p class="small">Aún no tienes trucos. Aparecen aquí cuando respondes cada prueba.</p>';
+    return '<p class="small" style="margin:0 0 12px">Cada truco sale de una situación del juego: te recuerdo qué pasaba, lo que elegiste y una idea para llevarlo un paso más allá.</p><ul class="tips">'+st.tips.map(function(x){return tipItem(x,false);}).join('')+'</ul>';
+  }
+  function openBook(){
+    modalbody.innerHTML=tipsHTML(); modal.hidden=false; bk.classList.remove('new'); newtag.hidden=true;
+    document.getElementById('mclose').focus();
+  }
+  function closeBook(){modal.hidden=true; try{bk.focus();}catch(_){}}
+  bk.addEventListener('click',openBook);
+  document.getElementById('snd').addEventListener('click',function(){audioInit(); setMuted(AU.on);});
+  setMuted(!AU.on);
+  document.getElementById('mclose').addEventListener('click',closeBook);
+  modal.addEventListener('click',function(e){if(e.target===modal) closeBook();});
+  document.addEventListener('keydown',function(e){if(e.key==='Escape'&&!modal.hidden) closeBook();});
+
+  /* ---------- Entradas ---------- */
+  function onKey(e,down){
+    if(!modal.hidden) return;
+    var tg=e.target&&e.target.tagName; if(tg==='INPUT'||tg==='TEXTAREA') return;
+    var k=e.code, used=true;
+    if(k==='ArrowLeft'||k==='KeyA') inp.l=down;
+    else if(k==='ArrowRight'||k==='KeyD') inp.r=down;
+    else if(k==='ArrowUp'||k==='KeyW'||k==='Space'){ if(down&&!inp.jump) inp.jumpQ=true; inp.jump=down; }
+    else used=false;
+    if(used&&(st.mode==='play')) e.preventDefault();
+  }
+  window.addEventListener('keydown',function(e){onKey(e,true);});
+  window.addEventListener('keyup',function(e){onKey(e,false);});
+  window.addEventListener('blur',function(){inp.l=inp.r=inp.jump=false;});
+
+  /* ---------- Física ---------- */
+  var G=560, JV=-215, SPD=62;
+  var HITQ=['¡SC nuevo en tu registro!','¡Uy, otro SC!','¡Ese SC ya te vio!','¡Otro SC y apenas es parcial!'];
+  var QUIPS=['¡Calificado!','¡SC fuera!','¡Ya subió a plataforma!','¡Cerrado a tiempo!','¡Se acabó el SC!'];
+  function hit(a,b){return a.x<b.x+b.w&&a.x+a.w>b.x&&a.y<b.y+b.h&&a.y+a.h>b.y;}
+  function addChispas(n){
+    var before=st.chispas; st.chispas+=n;
+    if(Math.floor(st.chispas/10)>Math.floor(before/10) && st.lives<3){st.lives++; drawInv(); bump('hearts'); sfx('heart'); floatMsg('¡Vida extra!'); boom(P.x+6,P.y,'#FF4D6D',10);}
+    drawInv(); bump('resS');
+  }
+  function hitBlock(s,j){
+    if(s.type==='q'&&!s.used){
+      s.used=true; s.bump=.2;
+      if(st.lives<3){st.lives++; sfx('heart'); drawInv(); bump('hearts'); floatMsg('+1 vida'); boom(s.x+7,s.y-2,'#FF4D6D',12);}
+      else{addChispas(3); sfx('coin'); floatMsg('+3 chispas'); boom(s.x+7,s.y-2,'#FFD166',12);}
+    } else if(s.type==='b'){
+      blocks.splice(j,1); sfx('block'); addChispas(2); floatMsg('+2 chispas'); boom(s.x+7,s.y+7,'#B9B3DC',14); return true;
+    }
+    return false;
+  }
+  function movePlayer(dt){
+    P.x+=P.vx*dt;
+    for(var i=0;i<blocks.length;i++){var b=blocks[i];
+      if(hit(P,b)){ if(P.vx>0) P.x=b.x-P.w; else if(P.vx<0) P.x=b.x+b.w; else P.x+=(P.x+4<b.x+4)?-1:1; P.vx=0; }
+    }
+    if(P.x<0) P.x=0; if(P.x>WORLD_W-P.w) P.x=WORLD_W-P.w;
+    P.vy+=G*dt; if(P.vy>260) P.vy=260;
+    P.y+=P.vy*dt; P.on=false;
+    for(var j=0;j<blocks.length;j++){var s=blocks[j];
+      if(hit(P,s)){
+        if(P.vy>0){P.y=s.y-P.h;P.vy=0;P.on=true;}
+        else if(P.vy<0){P.y=s.y+s.h;P.vy=40; if(hitBlock(s,j)) break;}
+      }
+    }
+    if(P.y+P.h>=GY){P.y=GY-P.h;P.vy=0;P.on=true;}
+  }
+  function update(dt){
+    st.time+=dt; updCrowd(dt);
+    if(st.dawnGo&&st.dawn<1) st.dawn=Math.min(1,st.dawn+dt/3);
+    for(var i=parts.length-1;i>=0;i--){var q=parts[i];q.l-=dt;q.vy+=240*dt;q.x+=q.vx*dt;q.y+=q.vy*dt;if(q.l<=0)parts.splice(i,1);}
+    blocks.forEach(function(b){if(b.bump>0)b.bump=Math.max(0,b.bump-dt);});
+    var target=Math.max(0,Math.min(WORLD_W-W,P.x-100));
+    if(st.mode==='camp') target=Math.max(0,Math.min(WORLD_W-W,CAMPX-128));
+    st.cam+=(target-st.cam)*Math.min(1,dt*(st.mode==='camp'?2.2:6));
+    if(st.mode==='play'){
+      var dir=(inp.r?1:0)-(inp.l?1:0);
+      P.vx=dir*SPD; if(dir) P.face=dir; P.walking=!!dir;
+      if(inp.jumpQ){ if(P.on){P.vy=JV;P.on=false;sfx('jump');} inp.jumpQ=false; }
+      if(!inp.jump&&P.vy<-115) P.vy=-115; // salto corto al soltar
+      if(P.hurt>0) P.hurt-=dt;
+      movePlayer(dt); P.t+=dt;
+      enemies.forEach(function(e){
+        if(e.dead>0){e.dead-=dt;return;}
+        e.x+=e.dir*14*dt; if(Math.abs(e.x-e.ox)>e.range) e.dir*=-1;
+        if(hit(P,e)){
+          if(P.vy>0&&P.y+P.h-e.y<11){e.dead=.6;P.vy=-130;addChispas(1);sfx('stomp');floatMsg(QUIPS[Math.floor(Math.random()*QUIPS.length)]);boom(e.x+7,e.y+6,'#CFC8F5',10);}
+          else if(P.hurt<=0){P.hurt=1.4;P.vx=-P.face*60;P.vy=-90;P.x+=-P.face*4;st.lives--;sfx('hit');drawInv();bump('hearts');floatMsg(HITQ[Math.floor(Math.random()*HITQ.length)]);boom(P.x+6,P.y+10,'#FF4D6D',8);if(st.lives<=0){startRescue();}}
+        }
+      });
+      coins.forEach(function(c){ if(!c.got&&P.x<c.x+10&&P.x+12>c.x&&P.y<c.y+10&&P.y+30>c.y){c.got=true;addChispas(1);sfx('coin');boom(c.x+5,c.y+5,'#FFD166',6);} });
+      if(st.idx<S.length&&P.x>=XS[st.idx]) openTrial();
+    } else if(st.mode==='dialog'||st.mode==='intro'||st.mode==='rescue'){
+      P.vx=0; P.walking=false; P.t+=dt*.2; movePlayer(dt);
+    } else if(st.mode==='camp'){
+      P.walking=false;
+      if(P.x<CAMPX-CXO()){P.vx=SPD;P.face=1;P.walking=true;} else {P.vx=0; if(!st.arrived){st.arrived=true;buildSequence();}}
+      P.t+=dt; movePlayer(dt);
+    }
+  }
+
+  /* ---------- Dibujo (estilo cartoon) ---------- */
+  var NIGHT=['#0E0B24','#16103A','#1E1648','#2B1F5C','#3A2A72','#4E347F','#6B3FA0','#8A4A99','#A85A92'];
+  var DAWN =['#3C3A8C','#5B46A0','#8A55A8','#B3619F','#D66F98','#EE8A8A','#FFB27A','#FFD08C','#FFE2A8'];
+  function hx(c){return [parseInt(c.substr(1,2),16),parseInt(c.substr(3,2),16),parseInt(c.substr(5,2),16)];}
+  function mix(a,b,t){var A=hx(a),B=hx(b);return 'rgb('+Math.round(A[0]+(B[0]-A[0])*t)+','+Math.round(A[1]+(B[1]-A[1])*t)+','+Math.round(A[2]+(B[2]-A[2])*t)+')';}
+  function circ(x,y,r,col){ctx.fillStyle=col;ctx.beginPath();ctx.arc(x,y,r,0,6.2832);ctx.fill();}
+  function glow(x,y,r,rgb,a){var g=ctx.createRadialGradient(x,y,0,x,y,r);g.addColorStop(0,'rgba('+rgb+','+a+')');g.addColorStop(1,'rgba('+rgb+',0)');ctx.fillStyle=g;ctx.fillRect(x-r,y-r,2*r,2*r);}
+  function R(c,x,y,w,h,col){c.fillStyle=col;c.fillRect(x,y,w,h);}
+  function drawSky(){
+    var g=ctx.createLinearGradient(0,0,0,H);
+    for(var i=0;i<9;i++) g.addColorStop(i/8,mix(NIGHT[i],DAWN[i],st.dawn));
+    ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
+    var a=1-st.dawn;
+    if(a>0.02){
+      for(var s=0;s<34;s++){var tw=.4+.6*Math.abs(Math.sin(st.time*1.6+s));ctx.globalAlpha=a*tw;circ(hs(s+1)*W,hs(s+50)*74,.5+hs(s+9)*.7,'#F6EEFF');}
+      ctx.globalAlpha=a; var my=24+st.dawn*60;
+      glow(208,my,34,'255,236,170',.5); circ(208,my,9,'#FFF4CC'); circ(205,my-2,1.8,'#EBDB9E'); circ(211,my+3,1.3,'#EBDB9E');
+      ctx.globalAlpha=1;}
+    if(st.dawn>0.02){ctx.globalAlpha=Math.min(1,st.dawn*1.5);var sy=(st.modo==='tec')?(82-26*st.dawn):(132-48*st.dawn);glow(128,sy,60,'255,226,150',.6);circ(128,sy,13,'#FFD27A');circ(128,sy,9.5,'#FFE9A8');ctx.globalAlpha=1;}
+  }
+  function hill(base,amp,col,par,ph){
+    ctx.fillStyle=col; ctx.beginPath(); ctx.moveTo(0,H);
+    for(var x=0;x<=W+4;x+=4){var wc=x+st.cam*par; ctx.lineTo(x,base+Math.sin(wc*.012+ph)*amp+Math.sin(wc*.031+ph*2)*amp*.45);}
+    ctx.lineTo(W+4,H); ctx.closePath(); ctx.fill();
+  }
+  function pine(x,s,col,hi,tr){
+    ctx.fillStyle=tr; rrp(ctx,x-2*s,GY-12*s,4*s,12*s,1); ctx.fill();
+    for(var t=0;t<3;t++){var by=GY-8*s-t*11*s, w=(24-t*6)*s;
+      ctx.fillStyle=col; ctx.beginPath(); ctx.moveTo(x-w/2,by); ctx.quadraticCurveTo(x,by-20*s,x+w/2,by); ctx.closePath(); ctx.fill();
+      ctx.fillStyle=hi; ctx.beginPath(); ctx.moveTo(x-w/2,by); ctx.quadraticCurveTo(x-2*s,by-15*s,x-w*.15,by-13*s); ctx.quadraticCurveTo(x-w*.3,by-6*s,x-w/2+3*s,by); ctx.closePath(); ctx.fill();}
+  }
+  function drawFar(){
+    if(st.modo==='tec'){drawSea();return;}
+    hill(GY-52,12,mix('#6A3C9E','#B7739F',st.dawn),.12,1);
+    hill(GY-34,10,mix('#4D2B86','#9A5F9C',st.dawn),.28,3);
+    var tc=mix('#2B6C73','#5FA390',st.dawn), hi=mix('#3A8A8A','#7BC2A4',st.dawn), tr=mix('#2A1B4D','#5A4060',st.dawn);
+    var k0=Math.floor(st.cam*.55/42)-1;
+    for(var k=k0;k<k0+8;k++){
+      var tx=k*42+Math.round(hs(k+300)*16)-st.cam*.55, s=.8+hs(k+77)*.45;
+      pine(tx,s,tc,hi,tr);
+    }
+    // niebla suave
+    var ma=.2*(1-st.dawn*.8); ctx.globalAlpha=ma;
+    for(var m=0;m<4;m++){var mx=((m*83+st.time*(4+m*2))%(W+120))-60; ctx.fillStyle='#E7D3F5'; ctx.beginPath(); ctx.ellipse(mx,GY-14-m*7,46,4.5,0,0,6.2832); ctx.fill();}
+    ctx.globalAlpha=1;
+  }
+  function drawGround(){
+    if(st.modo==='tec'){drawSand();return;}
+    var g=mix('#58B87A','#7FD08C',st.dawn), g2=mix('#8FDC95','#B6EBA6',st.dawn), d=mix('#5B3E7C','#7B5A7A',st.dawn), d2=mix('#4A3068','#6B4A68',st.dawn), d3=mix('#6E4F90','#8E6C8C',st.dawn);
+    ctx.fillStyle=d; ctx.fillRect(0,GY,W,H-GY);
+    var x;
+    for(var gx=Math.floor(st.cam/10)*10;gx<st.cam+W+10;gx+=10){var sx=gx-st.cam;
+      ctx.fillStyle=d2; ctx.beginPath(); ctx.ellipse(sx+hs(gx)*8,GY+9+hs(gx+3)*16,2.2,1.2,0,0,6.2832); ctx.fill();
+      if(hs(gx+9)>.55){ctx.fillStyle=d3; ctx.beginPath(); ctx.ellipse(sx+4,GY+20+hs(gx+5)*8,1.8,1,0,0,6.2832); ctx.fill();}}
+    ctx.fillStyle=g; ctx.beginPath(); ctx.moveTo(0,GY-1);
+    for(x=0;x<=W+4;x+=3) ctx.lineTo(x,GY-1+Math.sin((x+st.cam)*.12)*.8);
+    for(x=W+4;x>=0;x-=3) ctx.lineTo(x,GY+5+Math.sin((x+st.cam)*.17)*1.4);
+    ctx.closePath(); ctx.fill();
+    ctx.fillStyle=g2; ctx.beginPath(); ctx.moveTo(0,GY-1);
+    for(x=0;x<=W+4;x+=3) ctx.lineTo(x,GY-1+Math.sin((x+st.cam)*.12)*.8);
+    for(x=W+4;x>=0;x-=3) ctx.lineTo(x,GY+1.2+Math.sin((x+st.cam)*.12)*.8);
+    ctx.closePath(); ctx.fill();
+    ctx.strokeStyle=d2; ctx.lineWidth=.6; ctx.beginPath(); ctx.moveTo(0,GY+5.2); for(x=0;x<=W+4;x+=3) ctx.lineTo(x,GY+5+Math.sin((x+st.cam)*.17)*1.4); ctx.stroke();
+    for(var tx=Math.floor(st.cam/14)*14;tx<st.cam+W+14;tx+=14){var px=tx+hs(tx)*8-st.cam; ctx.fillStyle=g2; ctx.beginPath(); ctx.moveTo(px,GY); ctx.lineTo(px+1,GY-3-hs(tx+2)*2); ctx.lineTo(px+2,GY); ctx.fill();}
+  }
+  var MAT={dirt:['#8A6A52','#A58468','#5E4130'],cobble:['#9E98C8','#BDB8E0','#6C6698'],brick:['#B9B3DC','#D6D1F0','#7E78A8'],
+    plank:['#C58F66','#DDA97E','#8A5A3A'],dark:['#7D5535','#946843','#4D311B'],roof:['#7550AD','#9370CC','#432C70'],
+    glow:['#FFD166','#FFEAA8','#E5A800'],glass:['#9FD8F0','#D4F0FF','#4A7C96']};
+  function blk(x,y,m){
+    var c=MAT[m]; rrp(ctx,x+.4,y+.4,7.2,7.2,1.6); ctx.fillStyle=c[0]; ctx.fill();
+    ctx.fillStyle=c[1]; rrp(ctx,x+1,y+.9,5.8,1.6,.8); ctx.fill();
+    ctx.strokeStyle=c[2]; ctx.lineWidth=.55; ctx.lineCap='round';
+    if(m==='plank'||m==='dark'){ctx.beginPath();ctx.moveTo(x+1.2,y+4);ctx.lineTo(x+6.8,y+4);ctx.moveTo(x+1.2,y+6);ctx.lineTo(x+6.8,y+6);ctx.stroke();}
+    if(m==='brick'){ctx.beginPath();ctx.moveTo(x+.8,y+4);ctx.lineTo(x+7.2,y+4);ctx.moveTo(x+3.5,y+.8);ctx.lineTo(x+3.5,y+4);ctx.moveTo(x+5.5,y+4);ctx.lineTo(x+5.5,y+7.2);ctx.stroke();}
+    if(m==='cobble'){circ(x+2.8,y+4,1,c[2]);circ(x+5.4,y+5.6,.9,c[2]);}
+    if(m==='dirt'){circ(x+2.5,y+3,.6,c[2]);circ(x+5.5,y+5,.7,c[2]);}
+    if(m==='glass'){ctx.beginPath();ctx.moveTo(x+4,y+.8);ctx.lineTo(x+4,y+7.2);ctx.moveTo(x+.8,y+4);ctx.lineTo(x+7.2,y+4);ctx.stroke();}
+    ctx.strokeStyle='rgba(42,22,80,.75)'; ctx.lineWidth=.7; rrp(ctx,x+.4,y+.4,7.2,7.2,1.6); ctx.stroke();
+  }
+  function drawBlocks(){
+    blocks.forEach(function(b){
+      var by=b.y-(b.bump>0?Math.round(Math.sin(b.bump/.2*Math.PI)*5):0), bx=Math.round(b.x), z=b.w/8;
+      ctx.save(); ctx.translate(bx,by); ctx.scale(z,z);
+      if(b.type==='q'){
+        var col=b.used?['#9C6A48','#B08060','#6B4528']:['#FFB703','#FFE08A','#B07A00'];
+        if(!b.used){var pu=.5+.5*Math.sin(st.time*4+bx); glow(4,4,13,'255,214,100',.18+.18*pu);}
+        rrp(ctx,.4,.4,7.2,7.2,1.8); ctx.fillStyle=col[0]; ctx.fill();
+        ctx.fillStyle=col[1]; rrp(ctx,1,.9,5.8,1.8,.9); ctx.fill();
+        ctx.strokeStyle='rgba(42,22,80,.85)'; ctx.lineWidth=.7; rrp(ctx,.4,.4,7.2,7.2,1.8); ctx.stroke();
+        if(!b.used){ctx.fillStyle='#6B3E00';ctx.font='700 6.2px Rubik,sans-serif';ctx.textAlign='center';ctx.fillText('?',4,6.3);ctx.textAlign='left';}
+      } else if(b.type==='b'){ blk(0,0,'brick'); }
+      else blk(0,0,'cobble');
+      ctx.restore();
+    });
+  }
+  function ol(){ctx.lineWidth=.8;ctx.strokeStyle='rgba(42,22,80,.85)';ctx.lineJoin='round';}
+  function drawNode(n,i){
+    var x=Math.round(n.x)+6;
+    if(n.taken){ctx.fillStyle='rgba(30,16,50,.4)';ctx.beginPath();ctx.ellipse(x,GY-1,8,1.6,0,0,6.2832);ctx.fill();return;}
+    var p=(st.modo==='tec')?[2,1,5,3,6][n.p]:n.p, pu=.5+.5*Math.sin(st.time*3+i);
+    glow(x,GY-10,22,'255,214,120',.16+.14*pu);
+    ctx.fillStyle='rgba(30,16,50,.35)'; ctx.beginPath(); ctx.ellipse(x,GY-.5,10,2,0,0,6.2832); ctx.fill();
+    ol();
+    if(p===0){[[-5,-5,5.5,'#9C96C8'],[4,-4,4.6,'#B1ACD8'],[0,-11,4.4,'#8C86B8']].forEach(function(r){ctx.beginPath();ctx.ellipse(x+r[0],GY+r[1],r[2]+1.4,r[2],0,0,6.2832);ctx.fillStyle=r[3];ctx.fill();ctx.stroke();ctx.fillStyle='rgba(255,255,255,.35)';ctx.beginPath();ctx.ellipse(x+r[0]-1.5,GY+r[1]-1.8,1.6,.9,0,0,6.2832);ctx.fill();});}
+    else if(p===1){for(var l=0;l<3;l++){var yy=GY-5-l*5.2; rrp(ctx,x-9+(l===1?2:0),yy,18,5,1.5); ctx.fillStyle='#C58F66'; ctx.fill(); ctx.stroke(); ctx.strokeStyle='#8A5A3A'; ctx.lineWidth=.4; ctx.beginPath(); ctx.moveTo(x-6,yy+2.5); ctx.lineTo(x+6,yy+2.5); ctx.stroke(); ol();}}
+    else if(p===2){[[-6,-4],[6,-4],[0,-10.5]].forEach(function(r){ctx.beginPath();ctx.moveTo(x+r[0]-8,GY+r[1]-3.5);ctx.lineTo(x+r[0]+4,GY+r[1]-3.5);ctx.lineTo(x+r[0]+4,GY+r[1]+3.5);ctx.lineTo(x+r[0]-8,GY+r[1]+3.5);ctx.closePath();ctx.fillStyle='#9C6A44';ctx.fill();ctx.stroke();ctx.beginPath();ctx.ellipse(x+r[0]+4,GY+r[1],2.8,3.5,0,0,6.2832);ctx.fillStyle='#E0B988';ctx.fill();ctx.stroke();ctx.beginPath();ctx.ellipse(x+r[0]+4,GY+r[1],1,1.6,0,0,6.2832);ctx.strokeStyle='#8A5A3A';ctx.lineWidth=.4;ctx.stroke();ol();});}
+    else if(p===3){for(var q=0;q<3;q++){ctx.beginPath();ctx.ellipse(x,GY-5-q*1.2,9-q*1.2,5.2-q*.6,0,0,6.2832);ctx.fillStyle=q%2?'#D9C58E':'#EBD9A6';ctx.fill();ctx.stroke();}
+      ctx.beginPath();ctx.moveTo(x+4,GY-9);ctx.quadraticCurveTo(x+12,GY-12,x+10,GY-4);ctx.strokeStyle='#C9B77F';ctx.lineWidth=1.4;ctx.stroke();}
+    else if(p===5){rrp(ctx,x-9,GY-9,18,8,4);ctx.fillStyle='#F2EBDD';ctx.fill();ctx.stroke();ctx.beginPath();ctx.ellipse(x+9,GY-5,2.6,4,0,0,6.2832);ctx.fillStyle='#D9CFB8';ctx.fill();ctx.stroke();ctx.strokeStyle='#8A5A3A';ctx.lineWidth=.9;ctx.beginPath();ctx.moveTo(x-3,GY-9);ctx.lineTo(x-3,GY-1);ctx.moveTo(x+3,GY-9);ctx.lineTo(x+3,GY-1);ctx.stroke();ol();}
+    else if(p===6){anchorShape(x,GY-1,.95);}
+    else {ctx.beginPath();ctx.moveTo(x,GY-20);ctx.lineTo(x+6,GY-11);ctx.lineTo(x+3.5,GY-1);ctx.lineTo(x-3.5,GY-1);ctx.lineTo(x-6,GY-11);ctx.closePath();ctx.fillStyle='#8EE3EF';ctx.fill();ctx.stroke();
+      ctx.fillStyle='#CFF7FF';ctx.beginPath();ctx.moveTo(x-.5,GY-18);ctx.lineTo(x-4,GY-11);ctx.lineTo(x-2.5,GY-4);ctx.lineTo(x-1,GY-4);ctx.closePath();ctx.fill();
+      ctx.beginPath();ctx.moveTo(x-1,GY-12);ctx.lineTo(x+4.5,GY-12);ctx.strokeStyle='#4FB3C8';ctx.lineWidth=.4;ctx.stroke();}
+    if(Math.floor(st.time*2+i)%3===0){ctx.fillStyle='#fff';ctx.beginPath();ctx.moveTo(x+8,GY-17);ctx.lineTo(x+9,GY-15);ctx.lineTo(x+11,GY-14);ctx.lineTo(x+9,GY-13);ctx.lineTo(x+8,GY-11);ctx.lineTo(x+7,GY-13);ctx.lineTo(x+5,GY-14);ctx.lineTo(x+7,GY-15);ctx.closePath();ctx.fill();}
+  }
+  function drawCoins(){
+    coins.forEach(function(c,i){ if(c.got) return;
+      var bob=Math.sin(st.time*4+i)*1.8, x=c.x+5, y=c.y+5+bob, wd=.35+.65*Math.abs(Math.sin(st.time*3+i));
+      glow(x,y,13,'255,214,100',.3);
+      ctx.beginPath(); ctx.ellipse(x,y,5.6*wd+.8,5.8,0,0,6.2832); ctx.fillStyle='#FFD93D'; ctx.fill(); ctx.lineWidth=1.1; ctx.strokeStyle='#8A5A00'; ctx.stroke();
+      if(wd>.45){ctx.fillStyle='#FFF3A0';ctx.fillRect(x-.8,y-3.4,1.6,6.8);}
+    });
+  }
+  function drawEnemy(e){
+    var x=e.x+7, y=e.y;
+    if(e.dead>0){var u=1-e.dead/.6; var cx2=x, cy2=y+6;
+      ctx.globalAlpha=Math.max(0,1-u*1.2);
+      for(var pq=0;pq<7;pq++){var an=pq/7*6.2832+u*2, rr2=2+u*13; circ(cx2+Math.cos(an)*rr2,cy2+Math.sin(an)*rr2*.8-u*6,3.2*(1-u*.6),pq%2?'#F6F3FF':'#CFC8F5');}
+      ctx.fillStyle='#fff'; ctx.beginPath(); ctx.moveTo(cx2,cy2-8-u*8); ctx.lineTo(cx2+1.5,cy2-5-u*8); ctx.lineTo(cx2+4.5,cy2-4-u*8); ctx.lineTo(cx2+1.5,cy2-3-u*8); ctx.lineTo(cx2,cy2-.5-u*8); ctx.lineTo(cx2-1.5,cy2-3-u*8); ctx.lineTo(cx2-4.5,cy2-4-u*8); ctx.lineTo(cx2-1.5,cy2-5-u*8); ctx.closePath(); ctx.fill();
+      ctx.globalAlpha=1; return;}
+    var bob=Math.sin(st.time*3+e.ox)*1.8, w=1+Math.sin(st.time*5+e.ox)*.05;
+    var by=y+bob; ctx.save(); ctx.translate(x,by+7); ctx.scale(w,1/w); ctx.translate(-x,-(by+7));
+    ctx.beginPath(); ctx.moveTo(x-6.5,by+13); ctx.lineTo(x-6.5,by+3); ctx.quadraticCurveTo(x-6.5,by-3,x,by-3); ctx.quadraticCurveTo(x+6.5,by-3,x+6.5,by+3); ctx.lineTo(x+6.5,by+13);
+    ctx.quadraticCurveTo(x+4.4,by+9.5,x+2.2,by+13); ctx.quadraticCurveTo(x,by+9.5,x-2.2,by+13); ctx.quadraticCurveTo(x-4.4,by+9.5,x-6.5,by+13); ctx.closePath();
+    ctx.fillStyle='#F6F3FF'; ctx.fill(); ctx.lineWidth=.9; ctx.strokeStyle='#2A1650'; ctx.lineJoin='round'; ctx.stroke();
+    ctx.fillStyle='rgba(120,100,200,.2)'; ctx.beginPath(); ctx.ellipse(x+3,by+4,2.4,6,0,0,6.2832); ctx.fill();
+    circ(x-2.4,by+2.2,1.3,'#2A1650'); circ(x+2.4,by+2.2,1.3,'#2A1650'); circ(x-1.9,by+1.6,.45,'#fff'); circ(x+2.9,by+1.6,.45,'#fff'); circ(x,by+5.6,1.2,'#2A1650');
+    ctx.restore();
+    rrp(ctx,x-6,by-13,12,8,2); ctx.fillStyle='#E04848'; ctx.fill(); ctx.lineWidth=.8; ctx.strokeStyle='#2A1650'; ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(x-1.4,by-5.2); ctx.lineTo(x,by-3.4); ctx.lineTo(x+1.4,by-5.2); ctx.fillStyle='#E04848'; ctx.fill();
+    ctx.fillStyle='#fff'; ctx.font='700 5.6px Rubik,sans-serif'; ctx.textAlign='center'; ctx.fillText('SC',x,by-7.2); ctx.textAlign='left';
+  }
+
+  /* ---------- Llegan los estudiantes ---------- */
+  var crowd=[], DECKX=[-40,-28,-16,12,22,32];
+  function spawnCrowd(){ for(var k=0;k<6;k++)(function(k){ later(k*420,function(){ crowd.push({k:k,x:CAMPX+150+k*6,st:'run',u:0,tm:0}); }); })(k); }
+  function crowdFinal(){ crowd.length=0; if(st.modo==='tec'){ for(var k=0;k<6;k++) crowd.push({k:k,x:CAMPX+DECKX[k],st:'deck',u:1,tm:k}); st.inside=0; } else st.inside=6; }
+  function updCrowd(dt){
+    var tec=st.modo==='tec';
+    crowd.forEach(function(c){ c.tm+=dt;
+      if(c.st==='run'){ c.x-=78*dt; var tx=tec?CAMPX+62:CAMPX; if(c.x<=tx){ c.x=tx; if(tec){c.st='jump';c.u=0;} else {c.st='in';c.u=0;st.inside=(st.inside||0)+1;sfx('coin');} } }
+      else if(c.st==='jump'){ c.u+=dt/.75; if(c.u>=1){c.u=1;c.st='deck';sfx('coin');} }
+      else if(c.st==='in'){ c.u+=dt/.35; if(c.u>=1) c.st='gone'; }
+    });
+  }
+  function drawCrowd(){
+    var tec=st.modo==='tec';
+    if(!tec&&st.inside>0){ glow(CAMPX,GY-14,24+st.inside*2,'255,209,102',.14+.04*Math.min(st.inside,6)); }
+    crowd.forEach(function(c){
+      if(c.st==='gone') return;
+      var sx=CAMPX+DECKX[c.k], deckY=GY-30, x=c.x, y=GY, air=false, mv=false, alpha=1, face=-1;
+      if(c.st==='run') mv=true;
+      else if(c.st==='jump'){ var fx=CAMPX+62; x=fx+(sx-fx)*c.u; y=GY+(deckY-GY)*c.u-26*Math.sin(Math.PI*c.u); air=true; }
+      else if(c.st==='deck'){ x=sx; y=deckY-Math.abs(Math.sin(st.time*3+c.k))*1.2; face=(c.k<3?1:-1); }
+      else if(c.st==='in'){ alpha=1-c.u; mv=true; x=c.x-c.u*6; }
+      ctx.globalAlpha=alpha;
+      drawCharU(ctx,x,y,.22,{k:'e'+c.k,face:face,t:c.tm+c.k,moving:mv,air:air,time:st.time+c.k});
+      ctx.globalAlpha=1;
+    });
+  }
+  /* campamento / barco */
+
+  function palm(x,s,col,tr){
+    ctx.lineCap='round'; ctx.strokeStyle=tr; ctx.lineWidth=2.6*s; ctx.beginPath(); ctx.moveTo(x,GY); ctx.quadraticCurveTo(x+5*s,GY-18*s,x+2*s,GY-34*s); ctx.stroke();
+    var tx=x+2*s, ty=GY-34*s;
+    [-2.9,-2.4,-1.9,-1.2,-.6,.1,.45].forEach(function(a,i){
+      var ex=tx+Math.cos(a)*(18-(i%2)*3)*s, ey=ty+Math.sin(a)*9*s+8*s;
+      ctx.strokeStyle=col; ctx.lineWidth=3.1*s; ctx.beginPath(); ctx.moveTo(tx,ty); ctx.quadraticCurveTo(tx+Math.cos(a)*9*s,ty-8*s+Math.sin(a)*3*s,ex,ey); ctx.stroke();
+    });
+    circ(tx-1.4*s,ty+2*s,1.5*s,tr); circ(tx+1.6*s,ty+2.4*s,1.5*s,tr);
+  }
+  function drawSea(){
+    var hy=GY-44, x, r;
+    var g=ctx.createLinearGradient(0,hy,0,GY);
+    g.addColorStop(0,mix('#24357F','#F3A98B',st.dawn)); g.addColorStop(1,mix('#1B6A93','#58C6C8',st.dawn));
+    ctx.fillStyle=g; ctx.fillRect(0,hy,W,GY-hy);
+    var ix=170-st.cam*.06;
+    ctx.fillStyle=mix('#2B2A63','#7C6A9C',st.dawn); ctx.beginPath(); ctx.moveTo(ix-34,hy+1); ctx.quadraticCurveTo(ix-8,hy-15,ix+4,hy-11); ctx.quadraticCurveTo(ix+14,hy-19,ix+38,hy+1); ctx.closePath(); ctx.fill();
+    var bx=((st.time*1.6+30-st.cam*.08)%(W+80)+W+80)%(W+80)-40, bc=mix('#1B1B4A','#6A5A8C',st.dawn);
+    ctx.fillStyle=bc; ctx.beginPath(); ctx.moveTo(bx-5,hy+2); ctx.lineTo(bx+5,hy+2); ctx.lineTo(bx+3,hy+4); ctx.lineTo(bx-3,hy+4); ctx.closePath(); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(bx,hy+1); ctx.lineTo(bx,hy-8); ctx.lineTo(bx+4,hy+1); ctx.closePath(); ctx.fill();
+    var rx=208+(128-208)*st.dawn;
+    for(var k=0;k<12;k++){var yy=hy+2+k*3.4, ww=(10-k*.5)+Math.sin(st.time*2+k)*2; ctx.globalAlpha=.42*(1-k/13); ctx.fillStyle=st.dawn>.5?'#FFE2A8':'#FFF4CC'; ctx.beginPath(); ctx.ellipse(rx+Math.sin(st.time*1.3+k*1.7)*2,yy,Math.max(2,ww),.8,0,0,6.2832); ctx.fill();}
+    ctx.globalAlpha=1;
+    for(r=0;r<4;r++){var y0=hy+6+r*9; ctx.strokeStyle='rgba(255,255,255,'+(.10+.04*r)+')'; ctx.lineWidth=.7; ctx.beginPath();
+      for(x=0;x<=W;x+=4){var yy2=y0+Math.sin((x+st.cam*(.15+.05*r))*.09+st.time*(1+.3*r)+r)*1.2; if(x===0) ctx.moveTo(x,yy2); else ctx.lineTo(x,yy2);} ctx.stroke();}
+    var tc=mix('#1F5A55','#4E9A7A',st.dawn), tr=mix('#2A1B4D','#5A4060',st.dawn);
+    var k0=Math.floor(st.cam*.55/58)-1;
+    for(var q=k0;q<k0+7;q++){ palm(q*58+Math.round(hs(q+300)*20)-st.cam*.55,.75+hs(q+77)*.4,tc,tr); }
+    var ma=.16*(1-st.dawn*.8); ctx.globalAlpha=ma;
+    for(var m=0;m<4;m++){var mx=((m*83+st.time*(4+m*2))%(W+120))-60; ctx.fillStyle='#E7D3F5'; ctx.beginPath(); ctx.ellipse(mx,GY-12-m*7,46,4.5,0,0,6.2832); ctx.fill();}
+    ctx.globalAlpha=1;
+  }
+  function drawSand(){
+    var s1=mix('#B58B5A','#D9B07A',st.dawn), s2=mix('#D4AE78','#F2D49A',st.dawn), s3=mix('#9C7448','#BE9262',st.dawn), x;
+    ctx.fillStyle=s1; ctx.fillRect(0,GY,W,H-GY);
+    ctx.fillStyle=s2; ctx.fillRect(0,GY,W,5);
+    ctx.fillStyle='rgba(255,255,255,.6)'; ctx.beginPath(); ctx.moveTo(0,GY-1);
+    for(x=0;x<=W;x+=3) ctx.lineTo(x,GY-1+Math.sin((x+st.cam)*.2+st.time*1.5)*.9);
+    for(x=W;x>=0;x-=3) ctx.lineTo(x,GY+1.6+Math.sin((x+st.cam)*.17+st.time*1.2)*.7);
+    ctx.closePath(); ctx.fill();
+    for(var gx=Math.floor(st.cam/10)*10;gx<st.cam+W+10;gx+=10){var sx=gx-st.cam;
+      ctx.fillStyle=s3; ctx.beginPath(); ctx.ellipse(sx+hs(gx)*8,GY+9+hs(gx+3)*16,1.6,.9,0,0,6.2832); ctx.fill();
+      if(hs(gx+9)>.9){ctx.fillStyle=mix('#F2C9C9','#FFE6E0',st.dawn); ctx.beginPath(); ctx.ellipse(sx+4,GY+12+hs(gx+5)*10,2,1.3,0,0,6.2832); ctx.fill();}}
+  }
+  function anchorShape(x,y,s){
+    ctx.save(); ctx.translate(x,y); ctx.scale(s,s); ctx.lineCap='round'; ctx.lineJoin='round';
+    function pass(col,w){ctx.strokeStyle=col; ctx.lineWidth=w; ctx.beginPath(); ctx.moveTo(0,-2); ctx.lineTo(0,-19); ctx.moveTo(-4,-15); ctx.lineTo(4,-15); ctx.moveTo(7,-9.5); ctx.arc(0,-9,7,0,Math.PI,false); ctx.moveTo(7,-9); ctx.lineTo(9.5,-12.5); ctx.moveTo(-7,-9); ctx.lineTo(-9.5,-12.5); ctx.moveTo(2,-21); ctx.arc(0,-21,2,0,6.2832); ctx.stroke();}
+    pass('#2A1650',3.4); pass('#B9C6E0',1.8);
+    ctx.restore();
+  }
+  function hullPath(cx){ctx.beginPath(); ctx.moveTo(cx-58,GY-31); ctx.quadraticCurveTo(cx-54,GY-15,cx-38,GY-12); ctx.lineTo(cx+38,GY-12); ctx.quadraticCurveTo(cx+56,GY-14,cx+58,GY-35); ctx.quadraticCurveTo(cx,GY-27,cx-58,GY-31); ctx.closePath();}
+  function drawShip(){
+    var cx=CAMPX;
+    ctx.strokeStyle='rgba(188,211,242,.55)'; ctx.lineWidth=1; ctx.setLineDash([3,3]);
+    if(!st.built[0]) ctx.strokeRect(cx-52+.5,GY-12+.5,104,6);
+    if(!st.built[1]){hullPath(cx);ctx.stroke();}
+    if(!st.built[2]){ctx.beginPath();ctx.moveTo(cx+.5,GY-33);ctx.lineTo(cx+.5,GY-100);ctx.stroke();ctx.strokeRect(cx+5.5,GY-94+.5,28,46);}
+    if(!st.built[3]){ctx.beginPath();ctx.arc(cx+42,GY-43,7,0,6.2832);ctx.stroke();}
+    if(!st.built[4]) ctx.strokeRect(cx-76+.5,GY-22+.5,14,22);
+    ctx.setLineDash([]);
+    var v=st.variant, i, t=st.time;
+    // 0 quilla y soportes
+    if(st.built[0]){ctx.save();ctx.translate(0,popOff(0)); ol();
+      [-30,30].forEach(function(o){ctx.beginPath();ctx.moveTo(cx+o-7,GY);ctx.lineTo(cx+o,GY-12);ctx.lineTo(cx+o+7,GY);ctx.closePath();ctx.fillStyle='#7D5535';ctx.fill();ctx.stroke();});
+      var q=v[0];
+      if(q===1){[[-52,24],[-18,18],[22,14],[42,10]].forEach(function(b){rrp(ctx,cx+b[0],GY-13,b[1],5,1.5);ctx.fillStyle='#946843';ctx.fill();ctx.stroke();});}
+      else{rrp(ctx,cx-52,GY-13,104,5.5,2);ctx.fillStyle='#946843';ctx.fill();ctx.stroke();
+        if(q===3){rrp(ctx,cx-48,GY-11.4,96,1.3,.6);ctx.fillStyle='#FFD166';ctx.fill();}}
+      ctx.restore();}
+    // 1 casco
+    if(st.built[1]){ctx.save();ctx.translate(0,popOff(1)); ol();
+      var c=v[1]; hullPath(cx); ctx.fillStyle='#C58F66'; ctx.fill();
+      ctx.save(); hullPath(cx); ctx.clip();
+      ctx.strokeStyle='rgba(120,70,40,.7)'; ctx.lineWidth=.6;
+      [-17,-22,-27].forEach(function(o){ctx.beginPath();ctx.moveTo(cx-60,GY+o+(o<-22?-2:0));ctx.lineTo(cx+60,GY+o+(o<-22?-2:0));ctx.stroke();});
+      if(c===1){[[-40,-24,14,9],[-6,-18,16,8],[30,-27,12,9]].forEach(function(h){ctx.fillStyle='#2A1650';ctx.fillRect(cx+h[0],GY+h[1],h[2],h[3]);});}
+      if(c===3){ctx.fillStyle='#F28482';ctx.fillRect(cx-60,GY-25,120,3.2);
+        [-24,0,24].forEach(function(o){ctx.beginPath();ctx.arc(cx+o,GY-19,3.2,0,6.2832);ctx.fillStyle='#CFF1FF';ctx.fill();ctx.strokeStyle='#4A3A2A';ctx.lineWidth=.9;ctx.stroke();});}
+      ctx.restore(); hullPath(cx); ol(); ctx.stroke();
+      var nm=String(st.materia||'').trim(); if(nm){ if(nm.length>26) nm=nm.slice(0,25)+'…';
+        ctx.font='700 4.4px Rubik,sans-serif'; var tw=ctx.measureText(nm).width, fs=Math.max(2.8,Math.min(4.4,4.4*46/Math.max(tw,1)));
+        ctx.font='700 '+fs+'px Rubik,sans-serif'; ctx.textAlign='center'; ctx.fillStyle='#3A2418'; ctx.fillText(nm,cx-29,GY-25.6); ctx.textAlign='left'; }
+      ctx.restore();}
+    // 2 mástil y velas
+    if(st.built[2]){ctx.save();ctx.translate(0,popOff(2)); ol();
+      var m=v[2], mt=(m===1)?GY-72:GY-100, wv=Math.sin(t*2);
+      rrp(ctx,cx-2,mt,4,mt<GY-90?66:70,1.2);ctx.fillStyle='#8A5A3A';ctx.fill();ctx.stroke();
+      if(m===1){ctx.beginPath();ctx.moveTo(cx+3,mt+4);ctx.lineTo(cx+22+wv,GY-42);ctx.lineTo(cx+3,GY-42);ctx.closePath();ctx.fillStyle='#E9E1D0';ctx.fill();ctx.stroke();}
+      else{
+        ctx.beginPath();ctx.moveTo(cx+3,mt+6);ctx.quadraticCurveTo(cx+38+wv*2,mt+26,cx+34,GY-46);ctx.lineTo(cx+3,GY-46);ctx.closePath();ctx.fillStyle='#F6F0E2';ctx.fill();ctx.stroke();
+        ctx.beginPath();ctx.moveTo(cx-3,mt+12);ctx.quadraticCurveTo(cx-26-wv*1.5,mt+34,cx-48,GY-38);ctx.lineTo(cx-3,GY-38);ctx.closePath();ctx.fillStyle='#E9E1D0';ctx.fill();ctx.stroke();
+        if(m===3){ctx.strokeStyle='#F28482';ctx.lineWidth=1.6;ctx.beginPath();ctx.moveTo(cx+4,GY-62);ctx.quadraticCurveTo(cx+22,GY-60+wv,cx+34,GY-62);ctx.moveTo(cx+4,GY-72);ctx.quadraticCurveTo(cx+20,GY-70+wv,cx+33,GY-73);ctx.stroke();ol();
+          ctx.beginPath();ctx.moveTo(cx+2,mt);ctx.quadraticCurveTo(cx+10,mt-3+wv,cx+18,mt+1+wv*1.5);ctx.quadraticCurveTo(cx+10,mt+4,cx+2,mt+5);ctx.closePath();ctx.fillStyle='#F28482';ctx.fill();ctx.stroke();}}
+      ctx.restore();}
+    // 3 timón
+    if(st.built[3]){ctx.save();ctx.translate(0,popOff(3)); ol();
+      var w=v[3], wx=cx+42, wy=GY-43;
+      if(w===1){ctx.save();ctx.translate(cx+50,GY-34);ctx.rotate(-.5);rrp(ctx,-2,-1.6,20,3.4,1.6);ctx.fillStyle='#8A5A3A';ctx.fill();ctx.stroke();ctx.restore();}
+      else{rrp(ctx,wx-1.4,wy,2.8,12,1);ctx.fillStyle='#8A5A3A';ctx.fill();ctx.stroke();
+        ctx.strokeStyle='#6B4528';ctx.lineWidth=1.3;for(i=0;i<8;i++){var an=i*Math.PI/4+(w===3?t*.4:0);ctx.beginPath();ctx.moveTo(wx,wy);ctx.lineTo(wx+Math.cos(an)*9,wy+Math.sin(an)*9);ctx.stroke();}
+        ctx.beginPath();ctx.arc(wx,wy,7,0,6.2832);ctx.strokeStyle='#2A1650';ctx.lineWidth=3;ctx.stroke();ctx.strokeStyle='#B07A52';ctx.lineWidth=1.6;ctx.stroke();circ(wx,wy,1.8,'#FFD166');
+        if(w===3){rrp(ctx,cx+54,GY-52,1.6,10,.6);ctx.fillStyle='#BDB2DD';ctx.fill();glow(cx+54.8,GY-50,16,'255,209,102',.4+.2*Math.sin(t*4));circ(cx+54.8,GY-50,2.6,'#FFE9A8');}}
+      ctx.restore();}
+    // 4 ancla
+    if(st.built[4]){ctx.save();ctx.translate(0,popOff(4)); ol();
+      var a=v[4], mt2=(v[2]===1)?GY-72:GY-100;
+      if(a===1) anchorShape(cx-70,GY,.8);
+      else{ctx.strokeStyle='#C9B77F';ctx.lineWidth=1.2;ctx.beginPath();ctx.moveTo(cx-56,GY-30);ctx.quadraticCurveTo(cx-66,GY-28,cx-64,GY-23);ctx.stroke();anchorShape(cx-64,GY-5,.85);}
+      if(a===3){var ga=.14+.2*(.5+.5*Math.sin(t*3));
+        [1,-1].forEach(function(d){var gr=ctx.createLinearGradient(cx,0,cx+d*84,0);gr.addColorStop(0,'rgba(255,209,102,'+(ga*2.2)+')');gr.addColorStop(1,'rgba(255,209,102,0)');
+          ctx.fillStyle=gr;ctx.beginPath();ctx.moveTo(cx,mt2-6);ctx.lineTo(cx+d*84,mt2-6-24);ctx.lineTo(cx+d*84,mt2-6+24);ctx.closePath();ctx.fill();});
+        glow(cx,mt2-6,22,'255,209,102',.5+.3*Math.sin(t*4)); circ(cx,mt2-6,4,'#FFD166'); circ(cx,mt2-6,2.2,'#FFF3C4');}
+      ctx.restore();}
+    for(i=0;i<5;i++){var fa=(st.time-st.flash[i])*1000; if(st.flash[i]>0&&fa<700){ctx.globalAlpha=(1-fa/700)*.55;
+      var bb=[[cx-56,GY-14,112,16],[cx-60,GY-36,120,24],[cx-50,GY-106,90,74],[cx+30,GY-54,30,28],[cx-76,GY-28,28,30]][i];
+      R(ctx,bb[0],bb[1],bb[2],bb[3],'#FFF3C4'); ctx.globalAlpha=1;}}
+  }
+  function CXO(){return st.modo==='tec'?92:34;}
+  function peakTop(){var v=st.variant[1]; return v===1?GY-48:GY-72;}
+  function popOff(i){var a=(st.time-st.builtAt[i])*1000; if(a>=500) return 0; var u=a/500; return -Math.round((1-u)*(1-u)*30);}
+  function drawGhost(){
+    ctx.strokeStyle='rgba(188,211,242,.55)'; ctx.lineWidth=1; ctx.setLineDash([3,3]);
+    function sr(x,y,w,h){ctx.strokeRect(Math.round(x)+.5,Math.round(y)+.5,w,h);}
+    var cx=CAMPX;
+    if(!st.built[0]) sr(cx-48,GY-8,96,8);
+    if(!st.built[1]){sr(cx-40,GY-32,80,24);ctx.beginPath();ctx.moveTo(cx-48,GY-32);ctx.lineTo(cx,GY-72);ctx.lineTo(cx+48,GY-32);ctx.stroke();}
+    if(!st.built[2]) sr(cx-96,GY-20,24,20);
+    if(!st.built[3]) sr(cx+48,GY-52,32,52);
+    if(!st.built[4]){ctx.beginPath();ctx.moveTo(cx+.5,GY-72);ctx.lineTo(cx+.5,GY-98);ctx.stroke();sr(cx-5,GY-108,10,10);}
+    ctx.setLineDash([]);
+  }
+  function drawCamp(){
+    var cx=CAMPX; if(st.cam+W<cx-130) return;
+    if(st.modo==='tec'){drawShip();return;}
+    drawGhost();
+    // 0 cimientos
+    if(st.built[0]){ctx.save();ctx.translate(0,popOff(0));
+      var v=st.variant[0],bx=cx-48;
+      for(var i=0;i<12;i++){
+        if(v===1){ if([1,4,6,9].indexOf(i)>=0) continue; blk(bx+8*i,GY-8,'dirt'); }
+        else if(v===2) blk(bx+8*i,GY-8,'cobble');
+        else blk(bx+8*i,GY-8,'brick');
+      }
+      if(v===3){R(ctx,bx,GY-16,3,8,'#6C6698');blk(bx-2,GY-24,'glow');R(ctx,bx+93,GY-16,3,8,'#6C6698');blk(bx+89,GY-24,'glow');}
+      ctx.restore();}
+    // 1 muros y techo
+    if(st.built[1]){ctx.save();ctx.translate(0,popOff(1));
+      var w=st.variant[1], wx=cx-48;
+      rrp(ctx,wx+40,GY-26,16,18,3);ctx.fillStyle='#2A1650';ctx.fill();
+      for(var r=0;r<3;r++)for(var c=1;c<=10;c++){
+        var y=GY-16-8*r, door=(c===5||c===6)&&r<2&&w>1;
+        if(door) continue;
+        if(w===1){ var pat=[[1,1,1,1,1,0,0,1,1,1,1],[1,1,0,1,1,0,1,1,0,1,1],[0,1,1,0,0,1,1,0,1,1,0]][r][c]; if(!pat) continue; blk(wx+8*c,y,'plank'); }
+        else if(w===3&&(c===1||c===10)) blk(wx+8*c,y,'dark');
+        else if(w===3&&r===1&&(c===3||c===8)) blk(wx+8*c,y,'glass');
+        else blk(wx+8*c,y,'plank');
+      }
+      var rows=w===1?2:4;
+      for(var s=0;s<rows;s++){ var a=w===1?(s===0?1:3):(s+0), n=w===1?(s===0?10:6):(12-2*s); var x0=cx-8*(n/2);
+        for(var q=0;q<n;q++){ blk(Math.round(x0+8*q),GY-40-8*s,(w===3&&s===0&&(q===0||q===n-1))?'glow':'roof'); } }
+      ctx.restore();}
+    // 2 fogata
+    if(st.built[2]){ctx.save();ctx.translate(0,popOff(2));
+      var f=st.variant[2], fx0=cx-84, fh=Math.sin(st.time*9);
+      ol();
+      if(f===3){glow(fx0,GY-12,48,'255,150,80',.35+.1*fh);}
+      [[-11,-2],[-6,1],[6,1],[11,-2]].forEach(function(o){ctx.beginPath();ctx.ellipse(fx0+o[0],GY+o[1]-1.5,3,2.2,0,0,6.2832);ctx.fillStyle=f===3?'#A39DC8':'#8C86B8';ctx.fill();ctx.stroke();});
+      ctx.save();ctx.translate(fx0,GY-3);[-.35,.35].forEach(function(a){ctx.save();ctx.rotate(a);rrp(ctx,-9,-1.6,18,3.4,1.6);ctx.fillStyle='#8A5A3A';ctx.fill();ctx.stroke();ctx.restore();});ctx.restore();
+      function flame(w,h,col,sway){ctx.beginPath();ctx.moveTo(fx0-w,GY-4);ctx.quadraticCurveTo(fx0-w*1.1,GY-4-h*.55,fx0+sway,GY-4-h);ctx.quadraticCurveTo(fx0+w*1.1,GY-4-h*.55,fx0+w,GY-4);ctx.closePath();ctx.fillStyle=col;ctx.fill();}
+      if(f===1){flame(3,7,'#FF8F5E',fh*.5);flame(1.6,4,'#FFD166',0);}
+      else if(f===2){flame(5.5,14,'#FF8F5E',fh);flame(3.2,9,'#FFD166',fh*.6);}
+      else{flame(8,26,'#FF8F5E',fh*1.6);flame(5,18,'#FFB703',fh);flame(2.6,10,'#FFF3C4',fh*.5);
+        for(var sp=0;sp<4;sp++){var u=((st.time*.8+sp*.25)%1);ctx.globalAlpha=1-u;circ(fx0-8+sp*5+Math.sin(st.time*3+sp)*3,GY-26-u*28,.9,'#FFD166');}ctx.globalAlpha=1;}
+      ctx.restore();}
+    // 3 torre
+    if(st.built[3]){ctx.save();ctx.translate(0,popOff(3));
+      var t=st.variant[3], tx=cx+52; ol();
+      if(t===1){[tx,tx+16].forEach(function(px){rrp(ctx,px,GY-16,4,16,1.2);ctx.fillStyle='#8A5A3A';ctx.fill();ctx.stroke();});rrp(ctx,tx-4,GY-21,28,5,1.6);ctx.fillStyle='#B07A52';ctx.fill();ctx.stroke();}
+      else{[tx,tx+16].forEach(function(px){rrp(ctx,px,GY-40,4,40,1.2);ctx.fillStyle='#8A5A3A';ctx.fill();ctx.stroke();});
+        [GY-22,GY-12].forEach(function(py){rrp(ctx,tx+3.5,py,13,2.2,1);ctx.fillStyle='#6B4528';ctx.fill();ctx.stroke();});
+        rrp(ctx,tx-4,GY-45,28,5,1.6);ctx.fillStyle='#B07A52';ctx.fill();ctx.stroke();
+        blk(tx-4,GY-53,'roof');blk(tx+4,GY-53,'roof');blk(tx+12,GY-53,'roof');blk(tx+20,GY-53,'roof');blk(tx+4,GY-61,'roof');blk(tx+12,GY-61,'roof');
+        if(t===3){glow(tx+10,GY-40,26,'255,209,102',.4+.2*Math.sin(st.time*4));circ(tx+10,GY-40,3.2,'#FFE9A8');
+          rrp(ctx,tx+9,GY-85,1.8,25,.8);ctx.fillStyle='#BDB2DD';ctx.fill();var wv=Math.sin(st.time*5);
+          ctx.beginPath();ctx.moveTo(tx+10.8,GY-85);ctx.quadraticCurveTo(tx+17,GY-86+wv*1.5,tx+22,GY-83+wv*2);ctx.quadraticCurveTo(tx+17,GY-80+wv*1.5,tx+10.8,GY-79);ctx.closePath();ctx.fillStyle='#F28482';ctx.fill();ctx.stroke();}}
+      ctx.restore();}
+    // 4 faro
+    if(st.built[4]){ctx.save();ctx.translate(0,popOff(4));
+      var l=st.variant[4], pk=peakTop(); ol();
+      if(l===1){rrp(ctx,cx-1,pk-18,2,18,.8);ctx.fillStyle='#BDB2DD';ctx.fill();ctx.beginPath();ctx.moveTo(cx+1,pk-18);ctx.lineTo(cx+10,pk-15);ctx.lineTo(cx+1,pk-12);ctx.closePath();ctx.fillStyle='#FFD166';ctx.fill();ctx.stroke();}
+      else{
+        if(l===3){var ga=.14+.2*(.5+.5*Math.sin(st.time*3));
+          [1,-1].forEach(function(d){var gr=ctx.createLinearGradient(cx,0,cx+d*84,0);gr.addColorStop(0,'rgba(255,209,102,'+(ga*2.2)+')');gr.addColorStop(1,'rgba(255,209,102,0)');
+            ctx.fillStyle=gr;ctx.beginPath();ctx.moveTo(cx,pk-28);ctx.lineTo(cx+d*84,pk-28-26);ctx.lineTo(cx+d*84,pk-28+26);ctx.closePath();ctx.fill();});}
+        rrp(ctx,cx-1.6,pk-22,3.2,22,1);ctx.fillStyle='#BDB2DD';ctx.fill();ctx.stroke();
+        var sz=l===3?6:5; glow(cx,pk-22-sz,sz*4,'255,209,102',.5+.3*Math.sin(st.time*4));
+        circ(cx,pk-22-sz,sz,'#FFD166');ctx.lineWidth=.8;ctx.strokeStyle='rgba(42,22,80,.85)';ctx.beginPath();ctx.arc(cx,pk-22-sz,sz,0,6.2832);ctx.stroke();circ(cx,pk-22-sz,sz*.55,'#FFF3C4');}
+      ctx.restore();}
+    // destello al revelar
+    for(var i=0;i<5;i++){var a=(st.time-st.flash[i])*1000; if(st.flash[i]>0&&a<700){var u=1-a/700; ctx.globalAlpha=u*.55;
+      var bb=[[cx-52,GY-28,104,30],[cx-52,GY-76,104,70],[cx-100,GY-34,32,36],[cx+46,GY-64,36,66],[cx-14,GY-110,28,40]][i];
+      R(ctx,bb[0],bb[1],bb[2],bb[3],'#FFF3C4'); ctx.globalAlpha=1;}}
+  }
+  function draw(){
+    ctx.setTransform(SC,0,0,SC,0,0);
+    drawSky(); drawFar(); drawGround();
+    ctx.save(); ctx.translate(-Math.round(st.cam*SC)/SC,0);
+    nodes.forEach(drawNode);
+    for(var i=0;i<8;i++){ var nx=XS[i]+36, bob=Math.round(Math.sin(st.time*2+i)*1);
+      ctx.fillStyle='rgba(30,16,50,.35)';ctx.beginPath();ctx.ellipse(nx+6,GY-.5,9,2,0,0,6.2832);ctx.fill();
+      drawChar(ctx,nx,GY-HB+bob-(i===st.idx&&(st.mode==='dialog')?Math.round(Math.abs(Math.sin(st.time*6))*3):0),{k:'g'+S[i].p,face:-1,t:st.time,moving:false,time:st.time+i});
+    }
+    drawBlocks(); drawCoins(); enemies.forEach(drawEnemy);
+    drawCamp(); drawCrowd();
+    var sh=Math.max(0,Math.min(1,(GY-(P.y+P.h))/40));
+    ctx.fillStyle='rgba(30,16,50,'+(.38-sh*.2)+')';ctx.beginPath();ctx.ellipse(P.x+6,GY-.5,9-sh*4,2-sh*.6,0,0,6.2832);ctx.fill();
+    if(!(P.hurt>0&&Math.floor(st.time*16)%2===0)) drawChar(ctx,P.x,P.y+P.h-HB,{k:st.hero,face:P.face,t:P.t,moving:P.walking,air:!P.on,time:st.time});
+    parts.forEach(function(q){ctx.globalAlpha=Math.min(1,q.l*2);circ(q.x,q.y,1.2,q.c);}); ctx.globalAlpha=1;
+    ctx.restore();
+    if(st.mode==='play'&&st.idx<S.length&&P.x<XS[st.idx]-80&&Math.floor(st.time*2)%2===0){
+      ctx.fillStyle='#FFB703';ctx.strokeStyle='rgba(42,22,80,.9)';ctx.lineWidth=.9;ctx.lineJoin='round';ctx.beginPath();ctx.moveTo(W-20,60);ctx.lineTo(W-12,60);ctx.lineTo(W-12,55);ctx.lineTo(W-4,64);ctx.lineTo(W-12,73);ctx.lineTo(W-12,68);ctx.lineTo(W-20,68);ctx.closePath();ctx.fill();ctx.stroke();}
+    if(st.mode==='rescue'){
+      ctx.fillStyle='rgba(8,24,24,.5)'; ctx.fillRect(0,0,W,H);
+      var rg=ctx.createRadialGradient(W/2,H/2,H*.3,W/2,H/2,H*.9); rg.addColorStop(0,'rgba(46,208,138,0)'); rg.addColorStop(1,'rgba(46,208,138,.28)'); ctx.fillStyle=rg; ctx.fillRect(0,0,W,H);
+      ctx.save(); ctx.translate(W*.8,GY-28); ctx.scale(2.6,2.6); drawEnemy({x:-7,y:0,ox:0,dead:0}); ctx.restore();
+    }
+    if(st.dawn<.6){for(var f2=0;f2<8;f2++){var fxx=(hs(f2+90)*W+Math.sin(st.time*.7+f2)*12), fyy=64+hs(f2+120)*44+Math.cos(st.time*.9+f2)*5, fa=(Math.sin(st.time*3+f2*2)*.5+.5)*.9*(1-st.dawn);
+      ctx.globalAlpha=fa; glow(fxx,fyy,6,'255,226,122',.8); circ(fxx,fyy,.9,'#FFF0A8');} ctx.globalAlpha=1;}
+  }
+  var last=0;
+  function frame(ts){
+    var dt=Math.min(.033,(ts-last)/1000||0); last=ts;
+    try{ if((st.fc=(st.fc||0)+1)%45===0) sizeCanvas(); update(dt); musicUpdate(); draw(); }catch(e){ console.error(e); }
+    requestAnimationFrame(frame);
+  }
+
+  /* ---------- Pantallas ---------- */
+  var ov=document.getElementById('ov'), stagebox=document.getElementById('stagebox');
+  function toStage(){ try{ var r=stagebox.getBoundingClientRect(); if(r.top<0||r.bottom>window.innerHeight) window.scrollTo({top:window.scrollY+r.top-8,behavior:REDUCED?'auto':'smooth'}); }catch(_){} }
+  function setChip(t){chip.textContent=t;}
+  var LX_C={pre:'Antes de entrar al bosque',enter:'Entrar al bosque',toBack:'Para volver al bosque',back:'Volver al bosque',toCamp:'Ir al campamento',campChip:'Llegas al campamento',campCap:'Llegas al campamento…',buildT:'A levantar el refugio',buildP:'Con lo que juntaste, empiezas a levantar el refugio.',crowd:'Tus estudiantes llegan corriendo al refugio…',mine:'Mi refugio',game:'Contra la Neblina',aria:'Escena del juego: un personaje recorre un bosque de noche'};
+  var LX_T={pre:'Antes de pisar la playa',enter:'Entrar a la playa',toBack:'Para volver a la playa',back:'Volver a la playa',toCamp:'Ir al astillero',campChip:'Llegas al astillero',campCap:'Llegas al astillero…',buildT:'A armar el barco',buildP:'Con lo que juntaste, empiezas a armar el barco.',crowd:'Tus estudiantes suben a bordo…',mine:'Mi barco',game:'Contra la Neblina',aria:'Escena del juego: un personaje recorre una playa de noche con un barco en construcción'};
+  function lx(k){return (st.modo==='tec'?LX_T:LX_C)[k];}
+  var MODES=[
+    {k:'clara',n:'El refugio',d:'Mi clase y CLARA: cómo abres, practicas, dialogas, retroalimentas y cierras',
+     t:'La Neblina ya está en el campus',
+     s:'Hace tres noches, la Neblina del Desinterés cubrió el campus. Solo resisten las clases que alguien se atreve a sostener. Tú eres quien levanta el refugio que la detiene: cruza el bosque, junta materiales y constrúyelo antes del amanecer, porque tus estudiantes van a necesitar dónde refugiarse.'},
+    {k:'tec',n:'El barco',d:'Tecnología con propósito: celulares, audífonos e IA en tu clase',
+     t:'La Neblina de la Distracción cayó sobre el mar',
+     s:'Esta noche la Neblina de la Distracción cubrió el mar: pantallas encendidas, audífonos puestos y trabajos que suenan a robot. Solo zarpan las clases que alguien se atreve a capitanear. Tú eres el capitán o la capitana de una, y tu barco sigue en el astillero. Recorre la playa, toma decisiones y arma tu barco antes del amanecer: tus estudiantes van a querer subir a bordo.'}
+  ];
+  function setModeText(){ var m=MODES[st.modo==='tec'?1:0]; var a=document.getElementById('ttl'), b=document.getElementById('story'); if(a) a.textContent=m.t; if(b) b.textContent=m.s;
+    var g=document.getElementById('gt'); if(g) g.textContent=lx('game'); document.title=lx('game'); try{cv.setAttribute('aria-label',lx('aria'));}catch(_){}
+    var cr=app.querySelector('.crew'); if(cr){cr.innerHTML=PH.map(function(p,i){return '<div>'+portrait('g'+i)+'<b>'+p.guide+'</b>'+p.piece+'</div>';}).join(''); paintPortraits(app);}
+    var sb=document.getElementById('start'); if(sb) sb.textContent=lx('enter');
+    var ml=app.querySelector('label[for="materia"]'); if(ml) ml.textContent=(st.modo==='tec')?'¿Cómo se llama tu clase? Será el nombre de tu barco':'¿Qué clase vas a cuidar esta noche?'; setChip(lx('pre')); }
+  function renderIntro(msg){
+    st.mode='intro'; ov.hidden=true; st.lives=3; st.deaths=0; st.rescues=[]; st.rescUsed=[]; st.idx=0; st.picks=[]; st.tips=[]; st.counts=[0,0,0,0,0]; st.chispas=0; st.built=[false,false,false,false,false];
+    st.variant=[2,2,2,2,2]; crowd.length=0; st.inside=0; st.dawn=0; st.dawnGo=false; st.arrived=false; st.timers.forEach(clearTimeout); st.timers=[]; cap.textContent='';
+    buildWorld(); P.x=36;P.y=GY-30;P.vx=0;P.vy=0;P.face=1;P.hurt=0; st.cam=0;
+    bk.classList.add("off"); newtag.hidden=true; bk.classList.remove('new'); bkn.textContent='0'; drawInv(); setChip(lx('pre'));
+    var crew=PH.map(function(p,i){return '<div>'+portrait('g'+i)+'<b>'+p.guide+'</b>'+p.piece+'</div>';}).join('');
+    app.innerHTML='<div class="stack anim">'+
+      '<div class="card"><h2 id="ttl"></h2>'+
+      '<p class="story" id="story"></p>'+
+      '<div class="crew">'+crew+'</div></div>'+
+      '<div class="card stack" style="margin-top:0"><div><label id="mh">¿Qué aventura quieres jugar?</label>'+
+      '<div class="pick modes" role="radiogroup" aria-labelledby="mh">'+MODES.map(function(m){return '<button type="button" role="radio" class="hero mode" data-m="'+m.k+'" aria-checked="'+(m.k===st.modo?'true':'false')+'"><b>'+m.n+'</b><small>'+m.d+'</small></button>';}).join('')+'</div></div>'+
+      '<div><label id="lh">Elige tu personaje</label>'+
+      '<div class="pick" role="radiogroup" aria-labelledby="lh">'+HEROES.map(function(x){return '<button type="button" role="radio" class="hero" data-h="'+x.k+'" aria-checked="'+(x.k===st.hero?'true':'false')+'">'+portrait(x.k)+'<b>'+x.n+'</b><small>'+x.r+'</small></button>';}).join('')+'</div></div>'+
+      '<div><label for="nombre">¿Cómo te dicen?</label>'+
+      '<input type="text" id="nombre" autocomplete="given-name" maxlength="30" placeholder="Tu nombre de pila o apodo" value="'+esc(st.nombre)+'"></div>'+
+      '<div><label for="materia">¿Qué clase vas a cuidar esta noche?</label>'+
+      '<input type="text" id="materia" maxlength="60" placeholder="Por ejemplo: Mercados y consumidores">'+
+      '<p class="hint">Si das varias, puedes volver a jugar con cada una.</p></div>'+
+      '<p class="err" id="err" role="alert">'+(msg||'')+'</p>'+
+      '<p class="small" style="margin:0">Ocho pruebas, de 5 a 8 minutos. No hay respuestas buenas ni malas: tus decisiones van formando un mapa de tu clase que verás al amanecer.'+
+      (SHEET_URL?' Al terminar se guarda un registro con tu nombre de pila, la materia y tu mapa, solo para ver cómo avanza el campus en conjunto.':'')+'</p>'+
+      '<div><button class="btn" id="start">Entrar al bosque</button></div></div></div>';
+    setModeText();
+    var ms=app.querySelectorAll('.mode');
+    for(var mq=0;mq<ms.length;mq++){ ms[mq].addEventListener('click',function(){
+      st.modo=this.getAttribute('data-m'); applyMode(); setModeText();
+      var all=app.querySelectorAll('.mode'); for(var z=0;z<all.length;z++) all[z].setAttribute('aria-checked',all[z]===this?'true':'false');
+    }); }
+    paintPortraits(app);
+    document.getElementById('start').addEventListener('click',start);
+    document.getElementById('materia').addEventListener('keydown',function(e){if(e.key==='Enter')start();});
+    var hs2=app.querySelectorAll('.hero:not(.mode)');
+    for(var q=0;q<hs2.length;q++){ hs2[q].addEventListener('click',function(){
+      st.hero=this.getAttribute('data-h'); P.vy=-120; P.on=false;
+      var all=app.querySelectorAll('.hero:not(.mode)'); for(var z=0;z<all.length;z++) all[z].setAttribute('aria-checked',all[z]===this?'true':'false');
+    }); }
+  }
+  function start(){
+    audioInit(); applyMode();
+    var n=document.getElementById('nombre').value.trim(), m=document.getElementById('materia').value.trim();
+    if(!n||!m){document.getElementById('err').textContent=!n?'Escribe cómo te dicen para continuar.':'Escribe la clase para continuar.';return;}
+    st.nombre=n; st.materia=m; pickSit(m); st.lives=3; st.deaths=0; st.rescues=[]; st.rescUsed=[]; st.idx=0; st.picks=[]; st.tips=[]; st.answered=false;
+    bk.classList.remove("off"); bkn.textContent='0'; showControls(true);
+    window.scrollTo(0,0);
+  }
+  function showControls(first){
+    st.mode='play'; ov.hidden=true; setChip('Prueba '+(st.idx+1)+' de '+S.length);
+    app.innerHTML='<div class="anim"><div class="ctl" id="ctl"><button id="bL" aria-label="Moverse a la izquierda">←</button><button id="bR" aria-label="Moverse a la derecha">→</button><button id="bJ" aria-label="Saltar">Saltar ↑</button></div>'+
+      '<p class="ctlhint">Flechas o botones para moverte, ↑ o espacio para saltar. Pisa a los fantasmas SC para que desaparezcan y golpea los bloques con «?». Tienes 3 vidas: cada 10 chispas ganas una extra, y los bloques «?» te la dan si te falta. Los ladrillos se rompen y dan chispas.</p></div>';
+    function bind(id,fn){var b=document.getElementById(id);
+      function on(e){e.preventDefault();fn(true);b.classList.add('on');}
+      function off(e){e.preventDefault();fn(false);b.classList.remove('on');}
+      b.addEventListener('pointerdown',on);b.addEventListener('pointerup',off);b.addEventListener('pointerleave',off);b.addEventListener('pointercancel',off);
+      b.addEventListener('contextmenu',function(e){e.preventDefault();});}
+    bind('bL',function(d){inp.l=d;}); bind('bR',function(d){inp.r=d;});
+    bind('bJ',function(d){ if(d&&!inp.jump) inp.jumpQ=true; inp.jump=d; });
+    if(first){cap.textContent='Camina hacia la derecha y busca a tu primer compañero';later(function(){if(st.idx===0&&st.mode==='play')cap.textContent='';},6000);}
+    else cap.textContent='';
+    if(!first) toStage();
+  }
+  function openTrial(){
+    st.mode='dialog'; inp.l=inp.r=inp.jump=false; P.face=1; cap.textContent='';
+    var s=S[st.idx], ph=PH[s.p];
+    setChip('Prueba '+(st.idx+1)+' de '+S.length);
+    var opts=s.order.map(function(oi){return '<button class="opt" data-oi="'+oi+'">'+esc(s.o[oi].t)+'</button>';}).join('');
+    ov.hidden=false; ov.className='ov'; ov.innerHTML='<p class="who">'+ph.guide+' · '+s.title+'</p><p>'+T(s.text,st.materia)+'</p>';
+    app.innerHTML='<div class="dlg anim"><div class="opts" id="opts">'+opts+'</div><div id="fbslot"></div></div>';
+    st.answered=false;
+    document.getElementById('opts').addEventListener('click',onPick);
+    toStage();
+  }
+  var RESC=[
+    {q:'¿Qué son las Insignias Digitales de Tecmilenio?',o:['Certificados digitales emitidos por Tecmilenio que validan lo que aprendiste en un módulo','Becas que se asignan según el promedio del semestre','Claves de acceso para entrar a la plataforma'],a:'Son certificados digitales de Tecmilenio que validan conocimientos y competencias de un módulo del plan de estudios.'},
+    {q:'¿Quién emite las Certificaciones que avalan una competencia específica?',o:['Una casa certificadora externa a Tecmilenio','El propio docente de la materia al cerrar el parcial','Un comité interno de cada campus'],a:'Las emite una casa certificadora externa a Tecmilenio.'},
+    {q:'¿Qué encuentra el estudiante en Éxito Profesional?',o:['Bolsa de trabajo y ferias virtuales de empleo','Una casa certificadora externa para tus credenciales','Actividades para cultivar hábitos saludables'],a:'Bolsa de trabajo, ferias virtuales de empleo y eventos alineados a su Propósito de Vida.'},
+    {q:'¿En qué consiste el Acompañamiento?',o:['En una red de apoyo que ayuda a definir y alcanzar objetivos','En un formato de estudio a la medida de cada quien','En laboratorios presenciales y remotos'],a:'Es una red de apoyo, en todo momento, para definir y alcanzar objetivos.'},
+    {q:'¿Qué busca el Bienestar Integral?',o:['Promover, prevenir y cultivar hábitos saludables','Avalar competencias con una casa certificadora','Ofrecer ferias de empleo cada semestre'],a:'Busca promover, prevenir y cultivar hábitos saludables.'},
+    {q:'¿Qué ofrece la Flexibilidad?',o:['Un formato de estudio que se adapta a tus necesidades, espacio y tiempo','Una bolsa de trabajo con eventos de empleo','Un certificado digital por cada módulo cursado'],a:'Un formato de estudio que se adapta a las necesidades, el espacio y el tiempo de cada estudiante.'},
+    {q:'¿Cuántas dimensiones tiene el Modelo de Bienestar Integral de Tecmilenio?',o:['Siete','Cinco','Nueve'],a:'Son siete: social, físico, intelectual, ocupacional, financiera, espiritual y emocional.'},
+    {q:'¿Cuál de estas es una dimensión del Modelo de Bienestar Integral?',o:['Financiera','Tecnológica','Artística'],a:'La dimensión financiera es una de las siete, junto con social, físico, intelectual, ocupacional, espiritual y emocional.'},
+    {q:'¿Para qué está diseñado el Modelo de Bienestar Integral dirigido a profesores y colaboradores?',o:['Para contribuir a su desarrollo consciente, constante y equilibrado','Para reducir las horas de clase de cada semestre','Para sustituir las evaluaciones de desempeño'],a:'Está diseñado para contribuir a su desarrollo consciente, constante y equilibrado.'},
+    {q:'¿Cómo se adquiere experiencia profesional real en la industria o con un emprendimiento propio?',o:['Con la Estancia Empresarial','Con las Insignias Digitales','Con la Interculturalidad'],a:'Con la Estancia Empresarial.'}
+  ];
+  function shuffle(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}return a;}
+  function startRescue(){
+    st.mode='rescue'; st.deaths++; inp.l=inp.r=inp.jump=false; P.vx=0; P.walking=false; cap.textContent='';
+    var RP=(st.modo==='tec')?RESC_T.concat(RESC):RESC;
+    var pool=[]; for(var i=0;i<RP.length;i++) if(st.rescUsed.indexOf(i)<0) pool.push(i);
+    if(!pool.length){st.rescUsed=[]; for(var j=0;j<RP.length;j++) pool.push(j);}
+    var qi=pool[Math.floor(Math.random()*pool.length)]; st.rescUsed.push(qi);
+    var Q=RP[qi], order=shuffle([0,1,2]);
+    setChip('Te atrapó un SC'); newtag.hidden=true;
+    ov.hidden=false; ov.className='ov resc'; ov.innerHTML='<p class="who"><span class="pill">RESCATE DEL CAMPUS</span></p><p>Te atrapó un SC. '+lx('toBack')+', contesta: <strong>'+esc(Q.q)+'</strong></p>';
+    app.innerHTML='<div class="dlg resc anim"><div class="opts" id="opts">'+order.map(function(oi){return '<button class="opt" data-oi="'+oi+'">'+esc(Q.o[oi])+'</button>';}).join('')+'</div><div id="fbslot"></div></div>';
+    st.answered=false;
+    document.getElementById('opts').addEventListener('click',function(e){
+      var b=e.target.closest('.opt'); if(!b||st.answered) return; st.answered=true;
+      var ok=(+b.getAttribute('data-oi')===0);
+      st.rescues.push({q:qi,ok:ok}); sfx(ok?'ok':'bad');
+      var all=document.querySelectorAll('.opt'); for(var z=0;z<all.length;z++){all[z].disabled=true; if(all[z]!==b) all[z].style.display='none'; else all[z].classList.add('chosen');}
+      ov.innerHTML='<p class="who"><span class="pill">RESCATE DEL CAMPUS</span></p><p><strong>'+(ok?'¡Eso es! ':'Casi. ')+'</strong>'+(ok?'Vuelves con todas tus vidas. ':'Dato para la próxima: ')+esc(Q.a)+(ok?'':' Vuelves con una vida.')+'</p>';
+      document.getElementById('fbslot').innerHTML='<div class="nextrow anim"><button class="btn" id="back">'+lx('back')+'</button></div>';
+      var bb=document.getElementById('back'); bb.addEventListener('click',function(){
+        st.lives=ok?3:1; drawInv();
+        var cp=st.idx>0?XS[st.idx-1]+100:36; P.x=cp; P.y=GY-P.h; P.vx=0; P.vy=0; P.hurt=2.5; P.face=1;
+        showControls(false);
+      }); try{bb.focus({preventScroll:true});}catch(_){}
+    });
+    toStage();
+  }
+  function onPick(e){
+    var b=e.target.closest('.opt'); if(!b||st.answered) return; st.answered=true;
+    var s=S[st.idx], ph=PH[s.p], oi=+b.getAttribute('data-oi'), o=s.o[oi];
+    sfx('pick'); st.picks.push(3-oi); st.tips.push({t:s.title,i:o.i,sit:s.text.replace('{m}',st.materia),ch:o.t,p:s.p});
+    var all=document.querySelectorAll('.opt');
+    for(var i=0;i<all.length;i++){all[i].disabled=true; all[i].classList.add(all[i]===b?'chosen':'dim'); if(all[i]!==b) all[i].style.display='none';}
+    // recoger el material
+    var nd=nodes[st.idx]; nd.taken=true; boom(nd.x+6,GY-10,['#9C96C8','#C98B5B','#B07A52','#E9D8A6','#8EE3EF'][s.p],14);
+    st.counts[s.p]++; drawInv(); bump('res'+s.p); floatMsg('+1 '+ph.res);
+    bkn.textContent=st.tips.length; bk.classList.add('new'); newtag.hidden=false;
+    setTimeout(function(){newtag.hidden=true;},5000);
+    var last=st.idx===S.length-1;
+    ov.innerHTML='<p class="who">'+ph.guide+' dice</p><p>'+esc(o.r)+'</p>';
+    document.getElementById('fbslot').innerHTML=
+      '<div class="nextrow anim" style="justify-content:space-between;align-items:center;gap:10px"><button class="btn ghost" id="seeBook" style="padding:12px 14px">Ver truco guardado</button><button class="btn" id="next">'+(last?lx('toCamp'):'Seguir')+'</button></div>';
+    document.getElementById('seeBook').addEventListener('click',openBook);
+    var nb=document.getElementById('next');
+    nb.addEventListener('click',function(){
+      st.idx++;
+      if(last){startCamp();} else {showControls(false);}
+    });
+    try{nb.focus({preventScroll:true});}catch(_){}
+  }
+
+  /* ---------- Campamento, amanecer y revelación ---------- */
+  function scores(){
+    var sum=[0,0,0,0,0],cnt=[0,0,0,0,0];
+    S.forEach(function(s,i){sum[s.p]+=st.picks[i];cnt[s.p]++;});
+    return PH.map(function(p,i){return {i:i,sum:sum[i],ratio:sum[i]/(3*cnt[i])};});
+  }
+  function lvl(r){return r>=0.8?3:(r>=0.6?2:1);}
+  function startCamp(){
+    st.mode='camp'; ov.hidden=true; st.arrived=false; newtag.hidden=true; setChip(lx('campChip')); cap.textContent=lx('campCap');
+    app.innerHTML='<div class="stack anim"><div class="card"><h2>'+lx('buildT')+'</h2><p class="story">'+(st.modo==='tec'?'Con lo que juntaste, la tripulación empieza a armar el «'+esc(st.materia)+'».':lx('buildP'))+'</p><div class="nextrow"><button class="btn ghost" id="skip">Ver mi mapa ya</button></div></div></div>';
+    document.getElementById('skip').addEventListener('click',function(){finishNow();});
+    window.scrollTo(0,0);
+  }
+  function buildSequence(){
+    var res=scores();
+    for(var i=0;i<5;i++){(function(i){ later(500+i*800,function(){st.built[i]=true;st.builtAt[i]=st.time;sfx('build');cap.textContent=PH[i].piece+(PH[i].ok||' levantado');boom(CAMPX-40+i*20,GY-10,'#FFD166',6);}); })(i);}
+    var t0=500+5*800+600;
+    later(t0,function(){sfx('fanfare');st.dawnGo=true;setChip('Amanece');cap.textContent='El cielo se aclara…';});
+    later(t0+900,function(){cap.textContent=lx('crowd');spawnCrowd();});
+    res.forEach(function(r,k){ later(t0+3300+k*1300,function(){
+      var q=lvl(r.ratio); st.variant[r.i]=q; st.flash[r.i]=st.time; cap.textContent=PH[r.i].piece+': '+QNAME[q];
+    }); });
+    later(t0+3300+5*1300+800,function(){finishNow();});
+  }
+  function finishNow(){
+    if(st.mode==='result') return; st.mode='result';
+    st.timers.forEach(clearTimeout); st.timers=[];
+    var res=scores();
+    for(var i=0;i<5;i++){st.built[i]=true; if(!st.builtAt[i]) st.builtAt[i]=st.time-1; st.variant[res[i].i]=lvl(res[i].ratio);}
+    crowdFinal(); st.dawnGo=true; st.dawn=1; cap.textContent=''; setChip('Amaneció'); P.x=Math.max(P.x,CAMPX-CXO());
+    renderResult(res);
+  }
+  function renderResult(res){
+    var best=res.slice().sort(function(a,b){return b.ratio-a.ratio||a.i-b.i;})[0];
+    var order=[1,2,3,0,4];
+    var low=res.slice().sort(function(a,b){return a.ratio-b.ratio||order.indexOf(a.i)-order.indexOf(b.i);})[0];
+    var rows=res.map(function(x){
+      var p=PH[x.i], q=lvl(x.ratio);
+      return '<div class="row">'+portrait('g'+x.i)+'<div><div class="nm"><span>'+p.piece+'<small>'+p.fase+'</small></span><span class="lv">'+QNAME[q]+'</span></div>'+
+        '<div class="bar"><i style="width:'+Math.round(x.ratio*100)+'%;background:'+BARCOL[x.i]+'"></i></div></div></div>';
+    }).join('');
+    var topT=best.ratio>=0.6?'Tu punto fuerte: '+PH[best.i].piece+' ('+PH[best.i].fase+')':'Tu punto de partida: '+PH[best.i].piece+' ('+PH[best.i].fase+')';
+    var topX=best.ratio>=0.6?STRONG[best.i]:'Por aquí empieza tu mapa. Desde aquí se camina fácil hacia las otras piezas.';
+    var reto=low.ratio>=0.8?(st.modo==='tec'?'Tu barco está listo para zarpar. Tu reto es compartirlo: cuéntale a un colega cómo acuerdas y acompañas el uso de dispositivos e IA.':'Tu refugio está muy completo. Tu reto es compartirlo: cuéntale a un colega cómo abres o cierras tus clases.'):RETOS[low.i];
+    var retoT=low.ratio>=0.8?'Tu reto de esta semana':'Tu reto de esta semana · '+PH[low.i].piece;
+    var TEC=(st.modo==='tec');
+    var summary=(TEC?'Mi barco · Tecnología con propósito · ':'Mi refugio CLARA · ')+st.materia+'\n'+res.map(function(x){return PH[x.i].piece+' ('+PH[x.i].fase+'): '+QNAME[lvl(x.ratio)];}).join('\n')+'\nReto: '+reto;
+    window.scrollTo(0,0);
+    app.innerHTML='<div class="stack anim">'+
+      '<div class="card reveal top">'+portrait(st.hero)+'<div><h2>Y aquí va el secreto</h2>'+
+      (TEC?'<p>'+esc(st.nombre)+', cada pieza del barco «'+esc(st.materia)+'» mostraba cómo acompañas el uso de celulares, audífonos e IA, a la luz de «Tecnología con propósito». Nadie te calificó: tus decisiones dibujaron un mapa de tu clase de <b>'+esc(st.materia)+'</b>.</p>':'<p>'+esc(st.nombre)+', cada pieza de tu refugio era una fase de <b>CLARA</b>, el modelo de clase de Tecmilenio. Nadie te calificó: tus decisiones dibujaron un mapa de tu clase de <b>'+esc(st.materia)+'</b>.</p>')+'<p style="margin:8px 0 0">Y mira quién llegó corriendo: todo esto lo construyes para tus estudiantes.</p></div></div>'+
+      '<div class="card top">'+portrait('g'+best.i)+'<div><h3>'+esc(topT)+'</h3><p style="margin:8px 0 0">'+topX+'</p></div></div>'+
+      '<div class="card">'+rows+'</div>'+
+      '<div class="card"><h3>'+esc(retoT)+'</h3><p style="margin:8px 0 0">'+esc(reto)+'</p></div>'+
+      '<details class="card cuaderno" open><summary>Tu cuaderno de trucos ('+st.tips.length+')</summary><p class="small" style="margin:12px 0 0">Cada truco sale de una situación del juego: te recuerdo qué pasaba, lo que elegiste y una idea para llevarlo un paso más allá. Para ti, para tu clase de '+esc(st.materia)+'.</p><ul class="tips">'+st.tips.map(function(x){return tipItem(x,true);}).join('')+'</ul></details>'+
+      (TEC?'<div class="card guia"><h3>Guía rápida para tu clase</h3><ul class="gl">'+
+        '<li><b>Antes.</b> Acuerda con el grupo cuándo se usan dispositivos e IA y qué pasa si no se cumple. Publícalo en Canvas (Anuncios) con el Aviso de IA.</li>'+
+        '<li><b>Dos preguntas.</b> ¿Está interfiriendo con el aprendizaje? ¿Se usó para otra conducta que pueda ser falta (privacidad, acoso, integridad académica)?</li>'+
+        '<li><b>Si interfiere.</b> Oriéntalo breve y en privado, con una pregunta que devuelva la responsabilidad: «¿qué decisión necesitas tomar para volver a enfocarte?».</li>'+
+        '<li><b>Si se repite.</b> Conversación reflexiva con un compromiso concreto. Si persiste, escala a la mentora (figura de acompañamiento) con los detalles: frecuencia, afectación, contexto y disposición del estudiante.</li>'+
+        '<li><b>Lo que no hacemos.</b> Retener dispositivos, confrontar por su posesión, sancionar por cuenta propia o usar nuestro celular para fines personales en clase.</li>'+
+        '<li><b>Con la IA.</b> Declara tu propio uso, pide que declaren el suyo y contrasta lo entregado con lo que el estudiante puede explicar. Los detectores son una guía, no una prueba.</li>'+
+        '<li><b>Audífonos y celular.</b> Se atienden con el mismo criterio: importa el impacto en el aprendizaje. Si hay una razón de salud o familiar, el estudiante lo avisa antes al docente y a la mentora (figura de acompañamiento).</li></ul></div>':'')+
+      '<div class="card links"><h3>Si quieres seguir explorando</h3>'+
+      (TEC?'<p style="margin:8px 0 0">En <a href="'+APP_URL+'" target="_blank" rel="noopener">Aula CLARA</a> encuentras, en el menú Preparar, el apartado «Tecnología con propósito»: plantillas del acuerdo de dispositivos y del Aviso de IA para publicar en Canvas, y una guía para construir el acuerdo con tu grupo.</p></div>':'<p style="margin:8px 0 0">En <a href="'+APP_URL+'" target="_blank" rel="noopener">Aula CLARA</a> está la lección «El porqué de CLARA» y la herramienta Diseño de clase, que arma una planeación con las cinco fases a partir de un tema.</p></div>')+
+      '<div class="actions"><button class="btn" id="again">Jugar con otra clase</button><button class="btn ghost" id="copy">Copiar mi resumen</button></div>'+
+      '<p class="small" id="copied" role="status"></p></div>';
+    paintPortraits(app);
+    document.getElementById('again').addEventListener('click',function(){st.materia='';renderIntro();window.scrollTo(0,0);});
+    document.getElementById('copy').addEventListener('click',function(){copyText(summary);});
+    send(res);
+  }
+  function copyText(t){
+    var msg=document.getElementById('copied');
+    function fb(){var ta=document.createElement('textarea');ta.value=t;ta.setAttribute('readonly','');ta.style.position='fixed';ta.style.opacity='0';
+      document.body.appendChild(ta);ta.select();var ok=false;try{ok=document.execCommand('copy');}catch(_){}
+      document.body.removeChild(ta);msg.textContent=ok?'Resumen copiado.':'No se pudo copiar; selecciona el texto de las tarjetas.';}
+    try{ if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(function(){msg.textContent='Resumen copiado.';},fb);} else fb(); }catch(_){fb();}
+  }
+  function send(res){
+    if(!SHEET_URL) return;
+    var payload={fecha:new Date().toISOString(),ronda:RONDA,modo:st.modo,nombre:st.nombre,materia:st.materia,
+      C:res[0].sum,L:res[1].sum,D:res[2].sum,R:res[3].sum,An:res[4].sum,respuestas:st.picks.join(''),sit:st.sit||'',vidasPerdidas:st.deaths,rescates:st.rescues.map(function(r){return r.q+(r.ok?'+':'-');}).join(',')};
+    try{fetch(SHEET_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(payload)}).catch(function(){});}catch(_){}
+  }
+
+  buildWorld(); drawInv(); renderIntro(); sizeCanvas(); requestAnimationFrame(frame);
+})();
+</script>
+
+</body></html>
+</body></html>
