@@ -13,6 +13,7 @@ import Simplificador from './tools/Simplificador.jsx'
 import TimerCLARA from './tools/TimerCLARA.jsx'
 import Mensajes from './tools/Mensajes.jsx'
 import AsistenteReto from './tools/AsistenteReto.jsx'
+import TecnologiaConProposito from './tools/TecnologiaConProposito.jsx'
 
 import { MINI_CURSO } from './data.js'
 import { getLessonStatus, getStats, saveProfile, getProfile } from './storage.js'
@@ -25,6 +26,7 @@ const TOOL_COMPONENTS = {
   timer: TimerCLARA,
   mensajes: Mensajes,
   reto: AsistenteReto,
+  tecnologia: TecnologiaConProposito,
 }
 
 export default function App() {
@@ -156,6 +158,7 @@ function Sidebar({ view, activeTool, onNav, onTool }) {
         {mk('banco',      'Banco · 30 act.',     <Icon.Banco size={15} />,    true)}
         {mk('prompts',    'Prompts de IA',       <Icon.Prompts size={15} />,  true)}
         {mk('simplificar','Simplificar texto',   <Icon.Simplify size={15} />, true)}
+        {mk('tecnologia', 'Tecnología con propósito', <Icon.Compass size={15} />, true)}
       </div>
 
       <div className="sidebar-group">
