@@ -201,6 +201,16 @@ input[type=text]:focus-visible,button:focus-visible,a:focus-visible,summary:focu
     camp:{bpm:100,lead:[65,0,69,0,72,0,69,0, 70,0,74,0,77,0,74,0, 72,0,76,0,79,0,76,0, 77,0,76,0,72,0,0,0],
           bass:[41,0,48,0,41,0,48,0, 46,0,53,0,46,0,53,0, 48,0,55,0,48,0,55,0, 41,0,48,0,53,0,48,0], lt:'triangle', lv:.07}
   };
+  var TH_B={
+    explore:{bpm:112,lead:[76,0,79,81,0,79,76,0, 74,0,76,79,0,76,74,0, 72,0,74,76,0,74,72,0, 74,0,76,79,81,79,76,0],
+             bass:[48,0,0,55,48,0,55,0, 43,0,0,50,43,0,50,0, 45,0,0,52,45,0,52,0, 43,0,0,50,43,0,50,0], lt:'triangle', lv:.07, hat:1},
+    tension:{bpm:150,lead:[69,72,76,72,69,72,76,79, 68,71,75,71,68,71,75,78, 69,72,76,72,69,72,76,81, 79,76,72,76,69,0,0,0],
+             bass:[45,45,45,45,45,45,45,45, 44,44,44,44,44,44,44,44, 45,45,45,45,45,45,45,45, 40,40,40,40,40,40,40,40], lt:'sawtooth', lv:.03, hat:1},
+    calm:{bpm:80,lead:[0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0],
+          arp:[64,67,71,76,71,67,71,67, 62,65,69,74,69,65,69,65, 60,64,67,72,67,64,67,64, 62,67,71,74,71,67,71,67], bass:[40,0,0,0,0,0,0,0, 38,0,0,0,0,0,0,0, 36,0,0,0,0,0,0,0, 43,0,0,0,0,0,0,0], lt:'triangle', lv:.05},
+    camp:{bpm:96,lead:[72,0,76,0,79,0,76,0, 74,0,77,0,81,0,77,0, 76,0,79,0,83,0,79,0, 81,0,79,0,76,0,0,0],
+          bass:[48,0,55,0,48,0,55,0, 50,0,57,0,50,0,57,0, 52,0,59,0,52,0,59,0, 48,0,55,0,60,0,55,0], lt:'triangle', lv:.08}
+  };
   function audioInit(){
     try{
       if(!AU.ctx){
@@ -225,7 +235,7 @@ input[type=text]:focus-visible,button:focus-visible,a:focus-visible,summary:focu
   function setTheme(n){ if(!AU.ctx||AU.theme===n) return; AU.theme=n; AU.step=0; AU.next=AU.ctx.currentTime+.06; }
   function audioTick(){
     if(!AU.ctx||!AU.theme||AU.ctx.state!=='running') return;
-    var th=TH[AU.theme], sd=60/th.bpm/2;
+    var th=((st.modo==='tec')&&TH_B[AU.theme])||TH[AU.theme], sd=60/th.bpm/2;
     while(AU.next<AU.ctx.currentTime+.14){
       var i=AU.step%32, t=AU.next;
       if(th.lead[i]) tone(th.lt,mf(th.lead[i]),0,t,sd*1.7,th.lv);
@@ -454,12 +464,58 @@ input[type=text]:focus-visible,button:focus-visible,a:focus-visible,summary:focu
       {t:'Dejo que se vayan si ya terminaron.', r:'Respetas su tiempo y evitas conflicto.', i:'Un cierre breve y con sentido (una pregunta de 30 segundos) cambia la decisión de irse.'}]}
    ]
   ];
+  var S_ALT_EXTRA=[
+    {p:0, order:[0,1,2], title:'Los que faltaron',
+     text:'Arrancas un tema nuevo en {m} y varios faltaron la clase anterior, así que no saben de dónde viene. ¿Qué haces?', o:[
+      {t:'Abro con una pregunta que conecta con la clase pasada y pido a quienes sí estuvieron que la expliquen en 30 segundos a quienes faltaron.', r:'Conectas lo anterior con lo nuevo y los estudiantes se vuelven puente unos de otros.', i:'Deja un resumen de tres líneas en Canvas: quien falte puede ponerse al día en un minuto.'},
+      {t:'Hago yo un repaso rápido de lo que faltó antes de empezar.', r:'Nadie se queda atrás y el tema nuevo tiene dónde apoyarse.', i:'Pide a un estudiante que complete tu repaso: lo recuerdan mejor y tú detectas huecos.'},
+      {t:'Sigo con el tema nuevo y les digo que se pongan al día por su cuenta.', r:'Respetas el ritmo del grupo y la responsabilidad de cada quien.', i:'Una pregunta de 30 segundos que una la clase pasada con la de hoy les da un asidero sin frenar al grupo.'}]},
+    {p:1, order:[1,0,2], title:'El «no sé qué hacer»',
+     text:'Pides aplicar el tema de {m} a un caso propio y varios dicen «no sé qué hacer». ¿Qué haces?', o:[
+      {t:'Hago el primer paso con ellos en pantalla y les pido que continúen en parejas.', r:'Ver el arranque quita el miedo a empezar, y lo demás lo hacen ellos.', i:'Deja el primer paso a medias a propósito: tienen que terminarlo.'},
+      {t:'Les doy un ejemplo completo para que lo imiten.', r:'Un modelo claro da seguridad.', i:'Cambia un dato del ejemplo para que no sea copia y tengan que pensar.'},
+      {t:'Les repito la explicación con otras palabras.', r:'Explicar de otra forma suele ayudar.', i:'Pregunta antes qué parte no quedó clara: así tu repetición cae justo donde hace falta.'}]},
+    {p:1, order:[2,0,1], title:'Entregar para salir',
+     text:'En una práctica de {m}, varios entregan muy rápido para poder salirse antes. ¿Qué haces?', o:[
+      {t:'Agrego un paso: quien termina intercambia su trabajo con otro equipo y le da una mejora concreta.', r:'Terminar pronto se vuelve una oportunidad para aprender de otro trabajo.', i:'Avísalo desde el inicio: «terminar rápido no es salir, es pasar a la siguiente parte».'},
+      {t:'Fijo un tiempo mínimo de práctica antes de recibir entregas.', r:'Una regla clara cuida la calidad.', i:'Dale algo que hacer a quien termina antes, para que el tiempo mínimo no se sienta como castigo.'},
+      {t:'Recibo los trabajos y dejo salir a quien terminó.', r:'Respetas su tiempo y premias la eficiencia.', i:'Una pregunta rápida («¿cómo lo comprobaste?») antes de recibir cambia la velocidad por razonamiento.'}]},
+    {p:2, order:[1,2,0], title:'Siempre los mismos tres',
+     text:'En {m} participan siempre las mismas tres personas. ¿Qué haces?', o:[
+      {t:'Pido una respuesta escrita individual de un minuto y luego la compartimos en parejas antes de abrir al grupo.', r:'Escribir y conversar en pareja da voz a quienes nunca levantan la mano.', i:'Rota quién resume por el grupo: todos saben que pueden ser los siguientes.'},
+      {t:'Pido que participen quienes aún no lo han hecho.', r:'Abres espacio a nuevas voces.', i:'Avisa antes quién será para que lo piensen: bajan nervios y suben respuestas.'},
+      {t:'Agradezco las participaciones y sigo, porque el tiempo es corto.', r:'Aprovechas a quienes sí te siguen.', i:'Una pregunta en parejas de 30 segundos cambia mucho quién habla, sin gastar tiempo.'}]},
+    {p:2, order:[0,2,1], title:'El comentario fuera de tema',
+     text:'Un estudiante de {m} interrumpe una y otra vez con comentarios fuera de tema. ¿Qué haces?', o:[
+      {t:'Le doy un rol útil (moderar o formular preguntas) y converso con él aparte para entender qué busca.', r:'Canalizas la energía y escuchas lo que hay detrás.', i:'Si se repite, anota frecuencia y contexto: es lo que se necesita si hay que escalar a la mentora.'},
+      {t:'Le pido que guarde su comentario para el final.', r:'Cuidas el hilo de la clase y le das un espacio.', i:'Cumple el espacio: si lo retomas al final, aprende que su voz cuenta.'},
+      {t:'Le pido que ya no interrumpa.', r:'Proteges la dinámica del grupo.', i:'Una pregunta en privado («¿qué te interesa de esto?») suele cambiar más que la petición.'}]},
+    {p:3, order:[2,1,0], title:'La calificación inesperada',
+     text:'Un estudiante de {m} reclama su calificación en voz alta frente al grupo. ¿Qué haces?', o:[
+      {t:'Lo invito a revisar juntos la rúbrica en privado, lo escucho y le muestro dónde ganó y dónde perdió puntos.', r:'Escuchar en privado baja la tensión y la revisión se vuelve retroalimentación.', i:'Pídele que diga qué cambiaría para la próxima entrega: la queja se vuelve plan.'},
+      {t:'Le pido que revise la rúbrica y vuelva con preguntas concretas.', r:'Devuelves la responsabilidad con una vía clara.', i:'Dale horario y lugar para la revisión: la queja deja de ser pública.'},
+      {t:'Le digo que la calificación se queda como está.', r:'Mantienes tu criterio y evitas discusiones largas.', i:'Aunque no cambie, escuchar en privado dos minutos evita que el conflicto crezca.'}]},
+    {p:3, order:[1,0,2], title:'El mismo error en todos',
+     text:'Al revisar los trabajos de {m} notas el mismo error en casi todos. ¿Qué haces?', o:[
+      {t:'Lo presento en clase como un caso sin nombres y pido que lo corrijan en parejas.', r:'Un error común se vuelve aprendizaje del grupo y nadie se siente señalado.', i:'Pregunta qué los llevó a ese error: te dice si falló la explicación o la instrucción.'},
+      {t:'Lo comento al grupo y explico la forma correcta.', r:'Retroalimentas a todos a la vez y ahorras tiempo.', i:'Pide que cada quien corrija el suyo en la clase: la corrección es parte del aprendizaje.'},
+      {t:'Lo anoto en cada trabajo por separado.', r:'Das atención individual a cada entrega.', i:'Un comentario único para todo el grupo ahorra horas y se entiende mejor.'}]},
+    {p:4, order:[0,1,2], title:'El cierre del parcial',
+     text:'Falta una clase para el cierre del parcial de {m}. ¿Cómo la usas?', o:[
+      {t:'Pido que cada quien escriba qué aprendió que no sabía y para qué le sirve, y lo compartimos en parejas.', r:'Les das un para qué que ellos mismos escriben, y eso se queda.', i:'Guarda sus frases y devuélvelas al final del curso: verán cuánto avanzaron.'},
+      {t:'Hago un repaso con ejemplos de lo más importante.', r:'Un buen repaso ordena la cabeza antes de evaluar.', i:'Convierte una parte del repaso en preguntas que ellos contesten: repasan y tú ves qué reforzar.'},
+      {t:'Les doy una guía de estudio con los temas.', r:'Una guía clara reduce la ansiedad.', i:'Pide que cada quien agregue a la guía una duda propia: se vuelve suya.'}]}
+  ];
+  S_ALT.forEach(function(a,i){ a.push(S_ALT_EXTRA[i]); });
   function sitHash(str,i){var h=5381; str=String(str||'').toLowerCase().replace(/\s+/g,' ').trim();
     for(var k=0;k<str.length;k++) h=((h<<5)+h+str.charCodeAt(k))>>>0;
     h=(h^Math.imul(i+1,2654435761))>>>0; h^=h>>>15; h=Math.imul(h,2246822519)>>>0; h^=h>>>13; return h>>>0;}
   function pickSit(mat){
-    if(st.modo==='tec'){st.sit='';return;}
-    var ids=[]; S=S_CLARA.map(function(base,i){var v=sitHash(mat,i)%3; ids.push(v); return v===0?base:S_ALT[i][v-1];}); st.sit=ids.join('');
+    var tec=(st.modo==='tec'), base=tec?S_TEC:S_CLARA, alt=tec?S_ALT_TEC:S_ALT, ids=[], flags=[];
+    var arr=base.map(function(b,i){ var pool=[b].concat(alt[i]); var v=(sitHash(mat,i)+(RONDA-1))%pool.length; ids.push(v); return pool[v]; });
+    [[1,2],[3,4],[5,6]].forEach(function(pr,k){ var sw=(sitHash(mat,20+k)+RONDA)%2; flags.push(sw); if(sw){ var t=arr[pr[0]]; arr[pr[0]]=arr[pr[1]]; arr[pr[1]]=t; } });
+    S=arr; st.sit=ids.join('')+'-'+flags.join('');
+    nodes.forEach(function(n,i){ n.p=S[i].p; });
   }
 
   /* ---------- Personajes de bloques ---------- */
@@ -521,6 +577,144 @@ input[type=text]:focus-visible,button:focus-visible,a:focus-visible,summary:focu
       {t:'Lo reviso, indico que lo hice con apoyo de IA y les cuento cómo lo usé.', r:'Modelas la transparencia que les pides. Es el mejor ejemplo.', i:'Aprovecha para mostrar cómo verificaste los datos: es una mini lección de criterio.'},
       {t:'Lo reviso con cuidado antes de compartirlo.', r:'Revisar protege la calidad y la veracidad.', i:'Agrega una línea: «elaborado con apoyo de IA y revisado por mí». Con eso cumples y das ejemplo.'},
       {t:'Lo comparto sin decir nada; es para ayudarles.', r:'La intención de ayudar es lo que cuenta.', i:'Lo que pedimos declarar a los estudiantes también aplica a nosotros. Una línea basta y evita dudas.'}]}
+  ];
+  var S_ALT_TEC=[
+   [ /* espacio 0 · Contextualizar */
+    {p:0, order:[2,0,1], title:'El Aviso que nadie leyó',
+     text:'Publicaste el Aviso de IA de {m} en Canvas, pero nadie lo menciona en la primera tarea. ¿Qué haces?', o:[
+      {t:'Lo reviso con el grupo en tres minutos y pido que, al entregar, declaren en una línea si usaron IA y para qué.', r:'Lo que se revisa en voz alta se vuelve una práctica, no solo un anuncio.', i:'Pon la línea de declaración como último campo de la entrega: se vuelve costumbre.'},
+      {t:'Lo recuerdo con un anuncio en Canvas.', r:'Recordar por escrito deja constancia.', i:'Súmale un minuto en clase: los anuncios se leen poco, lo hablado se recuerda más.'},
+      {t:'Asumo que lo leyeron y lo aplico cuando llegue una entrega.', r:'Ya está publicado y es su responsabilidad leerlo.', i:'Una pregunta de verificación en clase («¿en qué actividades sí se puede usar IA?») muestra si se entendió.'}]},
+    {p:0, order:[1,2,0], title:'Primera clase, celulares en la mano',
+     text:'Es la primera clase de {m} y casi todo el grupo tiene el celular en la mano. ¿Qué haces?', o:[
+      {t:'Abro con una pregunta: «¿cuándo les ayuda el celular y cuándo les quita algo?» y construimos el acuerdo con sus respuestas.', r:'Un acuerdo que ellos ayudan a construir se cumple más.', i:'Escríbelo en pantalla en cuatro partes y publícalo hoy en Canvas.'},
+      {t:'Explico yo las reglas de uso desde el principio.', r:'Dejas claro lo que esperas.', i:'Pregunta al grupo qué agregarían: una regla que opinan se respeta más.'},
+      {t:'Les pido que guarden todos los celulares ya, sin más explicación.', r:'Buscas el enfoque desde el primer minuto.', i:'Sin una razón compartida suena a regaño. Una pregunta primero cambia el tono.'}]},
+    {p:0, order:[0,1,2], title:'Acuerdo a mitad del semestre',
+     text:'A mitad del semestre te das cuenta de que en {m} nunca acordaste reglas sobre dispositivos e IA. ¿Qué haces?', o:[
+      {t:'Dedico diez minutos de la próxima clase a construir el acuerdo con el grupo y lo publico en Canvas ese mismo día.', r:'Nunca es tarde: un acuerdo construido en grupo ordena lo que sigue.', i:'Reconoce ante ellos que lo estás poniendo ahora: dar el ejemplo también es parte del acuerdo.'},
+      {t:'Publico un anuncio con las reglas desde hoy.', r:'Das claridad de inmediato.', i:'Invita al grupo a comentarlo en la siguiente clase: se vuelve acuerdo y no solo aviso.'},
+      {t:'Lo dejo para el siguiente semestre y sigo con el grupo como está.', r:'Evitas cambiar las reglas a medio camino.', i:'Un acuerdo breve ahora previene conflictos de lo que queda del semestre.'}]}
+   ],
+   [ /* espacio 1 · Llevar a la práctica */
+    {p:1, order:[1,0,2], title:'La IA en la práctica',
+     text:'Planeas una práctica de {m} en la que pueden usar IA para investigar. ¿Cómo la planteas?', o:[
+      {t:'Marco qué paso permite IA y pido que anoten la pregunta que le hicieron y qué cambiaron de lo que respondió.', r:'Ver cómo la usan enseña criterio y deja evidencia del proceso.', i:'Pide que marquen una cosa de la respuesta de la IA que NO usarían y por qué.'},
+      {t:'Permito la IA y pido que citen la herramienta.', r:'Declarar el uso ya es una buena base.', i:'Agrega «qué cambiaste»: así no entregan la respuesta tal cual.'},
+      {t:'La prohíbo del todo y aviso que revisaré con un detector.', r:'Buscas proteger el aprendizaje propio.', i:'Los detectores son imprecisos. Mejor diseña la práctica para que se entienda y se explique.'}]},
+    {p:1, order:[2,1,0], title:'El resumen perfecto',
+     text:'Pides un resumen en {m} y casi todos entregan un texto impecable en minutos. ¿Qué haces?', o:[
+      {t:'Rediseño la actividad: una parte se hace en clase y cada quien explica su resumen en 30 segundos.', r:'Explicarlo en voz propia muestra qué entendieron, venga de donde venga el texto.', i:'Avísalo desde el inicio de la siguiente tarea, para que sea parte del diseño y no una sorpresa.'},
+      {t:'Pido que declaren si usaron IA y cómo.', r:'Declarar es lo que vuelve legítimo el uso.', i:'Combínalo con una pregunta oral breve: contrasta lo entregado con lo que pueden explicar.'},
+      {t:'Les pido que lo reescriban sin IA.', r:'Quieres que trabajen con sus propias palabras.', i:'Si no avisaste antes, puede sentirse injusto. Declara las reglas antes de la tarea.'}]},
+    {p:1, order:[0,2,1], title:'Rápido y sin pensar',
+     text:'En una actividad de {m} con apoyo de IA, varios entregan en cinco minutos sin explicar cómo llegaron. ¿Qué haces?', o:[
+      {t:'Agrego a la entrega una pregunta: «¿qué le pediste a la IA y qué decidiste tú?» y les doy oportunidad de ajustar.', r:'La pregunta devuelve el pensamiento al estudiante sin regañar.', i:'Haz de esa pregunta una parte fija de toda tarea con IA.'},
+      {t:'Pido que citen la herramienta y el prompt que usaron.', r:'Citar deja ver el proceso.', i:'Revisa uno o dos al azar en clase: se vuelve costumbre sin cargarte trabajo.'},
+      {t:'Les bajo puntos a quienes entregaron muy rápido.', r:'Buscas que la calidad importe.', i:'Sancionar sin una regla anunciada antes genera conflicto. Declara el criterio en la rúbrica desde el inicio.'}]}
+   ],
+   [ /* espacio 2 · Llevar a la práctica */
+    {p:1, order:[1,0,2], title:'El celular como calculadora',
+     text:'En una práctica de {m}, unos usan el celular como calculadora o para buscar un dato y otros están en redes. ¿Qué haces?', o:[
+      {t:'Declaro desde el inicio qué momentos permiten celular y para qué, y lo dejo anotado en la actividad.', r:'Con la regla en la actividad, ya no depende de tu vigilancia.', i:'Una línea («celular: solo en el paso 2, para buscar») evita casi todas las discusiones.'},
+      {t:'Paso por las mesas y pido guardar el celular a quien no lo usa para la tarea.', r:'Intervenir cerca y sin interrumpir cuida el ritmo.', i:'Si lo declaras antes, no tienes que corregir mesa por mesa.'},
+      {t:'Pido que todos dejen el celular en mi escritorio durante la práctica.', r:'Buscas proteger el enfoque.', i:'No retenemos dispositivos: generan conflicto y quedan a tu cargo. Mejor declara cuándo se usan y cuándo van guardados.'}]},
+    {p:1, order:[0,2,1], title:'La laptop de las notas',
+     text:'Un estudiante de {m} dice que toma notas en su laptop, pero ves que está en redes. ¿Qué haces?', o:[
+      {t:'Me acerco en privado, le pido que me muestre sus notas y le pregunto qué necesita para mantenerse enfocado.', r:'Una pregunta en privado devuelve la responsabilidad sin exponerlo.', i:'Acuerda con él un compromiso concreto y revisa cómo va en la siguiente clase.'},
+      {t:'Les pido a todos cerrar las laptops para esta actividad.', r:'Una regla general no señala a nadie.', i:'Avísalo al inicio de cada actividad: «hoy, laptops cerradas» queda más claro que un reclamo a media clase.'},
+      {t:'Le pido que cierre la laptop y tome notas a mano.', r:'Buscas que se enfoque.', i:'Sin preguntar antes puede no ser justo si la usa por una razón. Pregunta primero, en privado.'}]},
+    {p:1, order:[2,0,1], title:'El celular por una razón',
+     text:'Un estudiante de {m} te dice que necesita tener el celular a mano por una situación familiar. ¿Qué haces?', o:[
+      {t:'Converso en privado, acordamos cómo lo usará sin distraer y aviso a la mentora (figura de acompañamiento) para que lo conozca.', r:'Atiendes la razón real y dejas constancia por el camino institucional.', i:'Pídele que te avise cuando sea necesario atender algo: la regla se cumple con confianza.'},
+      {t:'Le permito usarlo sin más y no se lo comento al grupo.', r:'Respetas su situación y su privacidad.', i:'Una conversación breve para acordar cómo lo usará evita malentendidos con el resto.'},
+      {t:'Le pido que explique su situación frente al grupo para que se entienda.', r:'Quieres que no se vea como un trato desigual.', i:'Una razón de salud o familiar es privada. Se atiende en privado.'}]}
+   ],
+   [ /* espacio 3 · Activar el diálogo */
+    {p:2, order:[1,2,0], title:'Un solo audífono',
+     text:'En una discusión de {m}, una estudiante trae un solo audífono y se nota desconectada. ¿Qué haces?', o:[
+      {t:'La invito a participar con una pregunta concreta y al terminar converso con ella para saber cómo la ayudo a integrarse.', r:'Atiendes el impacto y no el audífono.', i:'Si te cuenta una razón, acuerden una forma de que participe sin dejar de escuchar.'},
+      {t:'Le pido, sin hacer ruido, que se lo quite durante la discusión.', r:'Una petición breve y directa también funciona.', i:'En privado y con una pregunta suele funcionar mejor que la petición directa.'},
+      {t:'Le pido a todos que se quiten los audífonos al entrar.', r:'Una regla general no señala a nadie.', i:'Declarar cuándo se permiten y cuándo no, desde el inicio, evita tener que repetirlo.'}]},
+    {p:2, order:[2,1,0], title:'Música para concentrarse',
+     text:'Durante el trabajo individual de {m}, algunos usan audífonos con música «para concentrarse». ¿Qué haces?', o:[
+      {t:'Declaro que en el trabajo individual se pueden usar y que al pasar a la parte de discusión se guardan, y lo dejo en la actividad.', r:'Declarar el momento hace que la regla sea de la actividad, no tuya.', i:'Una línea de aviso antes de cada transición evita que tengas que pedirlo.'},
+      {t:'Los dejo usarlos y pido que los quiten cuando empiece la discusión.', r:'Respetas su forma de concentrarse y marcas el límite.', i:'Avísalo al inicio de la actividad y no a medias.'},
+      {t:'Les pido que se los quiten porque no se oyen las indicaciones.', r:'Cuidas que se escuchen las indicaciones.', i:'Si lo declaras como regla del trabajo individual, no suena a reclamo.'}]},
+    {p:2, order:[0,2,1], title:'Audífonos en las exposiciones',
+     text:'Mientras exponen los equipos de {m}, un estudiante sigue con audífonos puestos. ¿Qué haces?', o:[
+      {t:'Al terminar, converso con él en privado y le pregunto qué le ayudaría a escuchar a sus compañeros.', r:'Una pregunta privada cuida la relación y toca el fondo.', i:'Deja claro, para toda exposición, que quien escucha también aporta: una pregunta por equipo al final.'},
+      {t:'Le hago una seña para que se los quite.', r:'Intervienes breve y sin detener la exposición.', i:'Una seña puede sentirse como reclamo. Pedirlo al inicio de la sesión es más neutro.'},
+      {t:'Detengo la exposición y le pido que se los quite frente al grupo.', r:'Respaldas a quienes exponen.', i:'En público no hay imagen que defender. En privado y breve funciona mejor.'}]}
+   ],
+   [ /* espacio 4 · Activar el diálogo */
+    {p:2, order:[1,0,2], title:'El chat en pleno debate',
+     text:'En un debate en {m}, ves que dos estudiantes chatean en el celular. ¿Qué haces?', o:[
+      {t:'Les hago una pregunta del debate para integrarlos y después converso con ellos en privado sobre cómo están viviendo la clase.', r:'Los traes a la conversación sin exponerlos.', i:'Si se repite, anota frecuencia y contexto: es lo que se necesita para escalar a la mentora.'},
+      {t:'Hago una pausa y pido al grupo guardar los celulares un momento.', r:'Una pausa general reinicia la atención sin señalar a nadie.', i:'Acompáñala con una pregunta: «¿qué necesitamos para volver a enfocarnos?».'},
+      {t:'Los señalo frente al grupo y les pido que lo guarden.', r:'Atiendes la distracción rápido.', i:'Frente al grupo suele generar defensa. En privado y con una pregunta, el mensaje llega igual.'}]},
+    {p:2, order:[2,0,1], title:'La foto del pizarrón',
+     text:'Mientras explicas {m}, un estudiante empieza a grabar o a tomar fotos de la clase. ¿Qué haces?', o:[
+      {t:'Acuerdo con el grupo cuándo se puede tomar foto del pizarrón o diapositiva y cuándo no se graba ni a personas ni la clase sin permiso.', r:'La privacidad de los demás también se cuida con un acuerdo claro.', i:'Incluye la regla en el acuerdo de dispositivos publicado en Canvas.'},
+      {t:'Pregunto al estudiante, con calma, qué está registrando y para qué.', r:'Preguntar antes que suponer evita malentendidos.', i:'Si graba personas, recuérdale el acuerdo y la importancia de pedir permiso.'},
+      {t:'Le pido que deje de grabar o tomar fotos sin más explicación.', r:'Proteges la clase.', i:'Una razón compartida (privacidad de todos) hace que la regla se entienda y no se sienta arbitraria.'}]},
+    {p:2, order:[0,2,1], title:'Pantallas en el cierre',
+     text:'En los últimos minutos de {m}, buena parte del grupo ya está en el celular. ¿Qué haces?', o:[
+      {t:'Anuncio desde el inicio que el cierre tiene una pregunta rápida que se usa en la siguiente clase, y la hago con celulares guardados.', r:'Darle valor al cierre hace que se queden atentos.', i:'Explícales por qué: «el cierre es lo que me ayuda a preparar lo siguiente».'},
+      {t:'Pido que guarden los celulares para la última indicación.', r:'Una regla breve cuida el cierre.', i:'Dale a la última indicación algo útil: una frase, una tarea o una pregunta.'},
+      {t:'Dejo que usen el celular si ya terminamos lo importante.', r:'Respetas su tiempo.', i:'Un cierre de 30 segundos con una pregunta cambia la costumbre de «ya acabó».'}]}
+   ],
+   [ /* espacio 5 · Retroalimentar */
+    {p:3, order:[2,0,1], title:'Se sale a contestar',
+     text:'Un estudiante de {m} se sale de clase varias veces a contestar mensajes o llamadas. ¿Qué haces?', o:[
+      {t:'Converso con él en privado, le pregunto qué está pasando y acordamos un compromiso concreto.', r:'Una conversación reflexiva es el primer paso de la ruta.', i:'Anota cuántas veces ha pasado y el contexto: es lo que necesitarás si hay que escalar.'},
+      {t:'Le recuerdo el acuerdo del grupo al terminar la clase.', r:'Recordar el acuerdo es claro y respetuoso.', i:'Agrega una pregunta: «¿qué te ayudaría a cumplirlo?».'},
+      {t:'Le digo que si sale otra vez no podrá volver a entrar.', r:'Buscas que se cumpla la regla.', i:'No imponemos sanciones propias. La ruta es conversar, comprometer y, si persiste, escalar a la mentora.'}]},
+    {p:3, order:[1,2,0], title:'El compromiso que no se cumplió',
+     text:'Conversaste con una estudiante de {m} sobre su uso del celular y acordaron un compromiso, pero sigue igual. ¿Qué haces?', o:[
+      {t:'Aviso a la mentora (figura de acompañamiento) con detalles: frecuencia, afectación, lo acordado y la disposición de la estudiante.', r:'Es el siguiente paso de la ruta y llegas con información útil.', i:'Cuéntale a la estudiante que lo harás y por qué: no la tomas por sorpresa.'},
+      {t:'Tengo otra conversación con ella y renuevo el compromiso.', r:'Das una segunda oportunidad con diálogo.', i:'Si ya pasó una vez, anota fechas: te ayudará si debes escalar.'},
+      {t:'Le quito participación o puntos para que entienda.', r:'Buscas una consecuencia clara.', i:'No imponemos sanciones propias. Si persiste, se escala a la mentora con los detalles.'}]},
+    {p:3, order:[0,1,2], title:'El grupo no cumple',
+     text:'Hace dos semanas acordaste con el grupo de {m} reglas de dispositivos, pero casi nadie las sigue. ¿Qué haces?', o:[
+      {t:'Abro diez minutos de conversación: «¿qué pasó con nuestro acuerdo?» y lo ajustamos juntos.', r:'Si el acuerdo no se cumple, quizá hay que ajustarlo con ellos.', i:'Publica la versión ajustada en Canvas: un acuerdo vivo se respeta más.'},
+      {t:'Les recuerdo el acuerdo al inicio de cada clase.', r:'La repetición ayuda a que se vuelva hábito.', i:'Pide que alguien lo lea en voz alta: queda como de todos.'},
+      {t:'Les aviso que ahora seré más estricto con quien no lo cumpla.', r:'Buscas que se respete.', i:'Endurecer sin conversar suele aumentar la resistencia. Revisar el acuerdo juntos suele funcionar mejor.'}]}
+   ],
+   [ /* espacio 6 · Retroalimentar */
+    {p:3, order:[2,0,1], title:'El estilo que no es suyo',
+     text:'Recibes un trabajo de {m} con un estilo muy distinto al que suele tener ese estudiante. ¿Qué haces?', o:[
+      {t:'Converso con él, le pido que me explique el trabajo con sus palabras y lo contrasto con lo entregado.', r:'Contrastar entrega y explicación es más confiable que cualquier detector.', i:'Si usó IA, pídele que me cuente cómo y qué cambió: es el momento de enseñar a declarar.'},
+      {t:'Le pregunto si usó alguna herramienta y le recuerdo el Aviso de IA.', r:'Preguntar abre la conversación sin acusar.', i:'Combínalo con una pregunta de contenido: así ves qué entendió.'},
+      {t:'Reviso el trabajo con un detector y, si sale alto, lo reprueba.', r:'Quieres proteger la integridad académica.', i:'Los detectores son una guía, no una prueba. Primero conversa con el estudiante.'}]},
+    {p:3, order:[1,2,0], title:'Fuentes que no existen',
+     text:'Un trabajo de {m} cita varias fuentes que no logras encontrar. ¿Qué haces?', o:[
+      {t:'Le pido al estudiante que me muestre las fuentes y revisamos juntos de dónde salieron.', r:'Revisarlas juntos muestra el proceso y enseña a verificar.', i:'Usa el caso, sin nombres, para enseñar al grupo a comprobar citas que da la IA.'},
+      {t:'Le devuelvo el trabajo para que corrija las fuentes.', r:'Das una oportunidad de corregir.', i:'Pide además que declare cómo las obtuvo: es ahí donde se enseña a usar IA con criterio.'},
+      {t:'Lo califico con cero por inventar fuentes.', r:'Defiendes la integridad académica.', i:'Sin conversación puede ser injusto: pudo ser un error de la herramienta. Si hay falta, se sigue el procedimiento institucional.'}]},
+    {p:3, order:[0,1,2], title:'Dos trabajos casi iguales',
+     text:'Dos estudiantes de {m} entregan trabajos casi idénticos. ¿Qué haces?', o:[
+      {t:'Converso con cada uno por separado, les pido que expliquen su trabajo y contrasto lo que dicen con lo entregado.', r:'Hablarlo por separado muestra qué hizo cada quien, sin acusar.', i:'Si hay indicios de falta, sigue el procedimiento institucional con lo que observaste.'},
+      {t:'Les pido a ambos que expliquen cómo trabajaron.', r:'Abres la conversación.', i:'Mejor por separado: juntos suele haber defensa.'},
+      {t:'Les pongo cero a los dos.', r:'Quieres dejar claro que no se acepta.', i:'Sin conversación puede ser injusto. Antes de decidir, escucha a cada uno.'}]}
+   ],
+   [ /* espacio 7 · Anclar el propósito */
+    {p:4, order:[1,0,2], title:'Tu rúbrica hecha con IA',
+     text:'Preparaste con ayuda de IA la rúbrica de {m}. ¿Qué haces antes de compartirla?', o:[
+      {t:'La reviso con cuidado, le agrego «elaborado con apoyo de IA y revisado por el docente» y les cuento cómo la usé.', r:'Declarar tu uso es lo que modela lo que pides.', i:'Muestra una cosa que cambiaste de lo que propuso la IA: es una mini lección de criterio.'},
+      {t:'La reviso con cuidado y la comparto.', r:'Revisar protege la calidad.', i:'Agrega la línea de declaración: pedimos eso a los estudiantes y también aplica a nosotros.'},
+      {t:'La comparto tal cual: me ahorró tiempo.', r:'Usar la herramienta bien ahorra tiempo.', i:'Lo que sale de la IA hay que revisarlo y declararlo. Una línea basta.'}]},
+    {p:4, order:[2,0,1], title:'El mensaje en plena clase',
+     text:'Mientras estás en clase de {m}, te llega un mensaje personal importante. ¿Qué haces?', o:[
+      {t:'Lo dejo para el descanso. Si es urgente, aviso al grupo en una frase y lo atiendo rápido.', r:'Modelas el mismo criterio que pides: el celular al servicio de la clase.', i:'Avísalo en el acuerdo desde el inicio: «si necesito mi celular por una urgencia, se los diré».'},
+      {t:'Lo contesto en silencio mientras trabajan en parejas.', r:'Aprovechas un momento de trabajo del grupo.', i:'Los estudiantes lo notan. Mejor avisa o espera al descanso.'},
+      {t:'Lo contesto rápido sin decir nada.', r:'Es una urgencia y es breve.', i:'Si lo declaras en una frase, se convierte en ejemplo y no en excepción silenciosa.'}]},
+    {p:4, order:[0,2,1], title:'¿Tú usas IA?',
+     text:'Un estudiante de {m} te pregunta de frente: «¿y usted usa IA?». ¿Qué haces?', o:[
+      {t:'Le respondo con honestidad, le muestro cómo la uso y cómo reviso lo que genera, y lo conecto con lo que pido en el curso.', r:'Modelas lo que pides: transparencia y criterio.', i:'Invita a un estudiante a hacerle una pregunta a la IA frente al grupo y evalúen juntos la respuesta.'},
+      {t:'Le digo que sí y que la uso con cuidado.', r:'Eres honesto y eso ya cuenta.', i:'Mostrar un ejemplo concreto vale más que decir «con cuidado».'},
+      {t:'Le digo que lo importante es lo que ellos hacen, no yo.', r:'Devuelves el foco a su aprendizaje.', i:'Si les pides declarar, mostrar tu uso hace que la regla sea pareja.'}]}
+   ]
   ];
   var RESC_T=[
     {q:'En Tecmilenio, ¿qué atiende el docente cuando un estudiante usa su dispositivo?',o:['La conducta del estudiante y su impacto en el aprendizaje','Que ningún dispositivo esté a la vista','Que todos dejen el celular en el escritorio'],a:'No se sanciona por tener el dispositivo: se atiende la conducta y su impacto en el aprendizaje.'},
@@ -661,14 +855,14 @@ function drawChar(c,x,y,o){ drawCharU(c,x+6,y+HB,KS,o); }
     for(var k=0;k<8;k++){
       var left=k===0?70:XS[k-1]+80, right=XS[k]-70, c=Math.round((left+right)/2);
       if(k%3===0){
-        addBlock(c-14,GY-50,'q',14);addBlock(c,GY-50,'b',14);addBlock(c+14,GY-50,'q',14);
-        addCoins([[c-24,GY-70],[c-12,GY-76],[c,GY-78],[c+12,GY-76],[c+24,GY-70]]);
+        addBlock(c-18,GY-54,'q',18);addBlock(c,GY-54,'b',18);addBlock(c+18,GY-54,'q',18);
+        addCoins([[c-30,GY-70],[c-15,GY-76],[c,GY-78],[c+15,GY-76],[c+30,GY-70]]);
       } else if(k%3===1){
-        addBlock(c-14,GY-14,'s',14);addBlock(c,GY-14,'s',14);addBlock(c,GY-28,'s',14);addBlock(c+14,GY-14,'s',14);addBlock(c+14,GY-28,'s',14);
-        addCoins([[c+10,GY-50],[c+26,GY-54],[c-16,GY-42]]);
+        addBlock(c-18,GY-18,'s',18);addBlock(c,GY-18,'s',18);addBlock(c,GY-36,'s',18);addBlock(c+18,GY-18,'s',18);addBlock(c+18,GY-36,'s',18);
+        addCoins([[c+10,GY-54],[c+28,GY-58],[c-24,GY-44]]);
       } else {
-        addBlock(c-7,GY-50,'q',14);
-        addCoins([[c-40,GY-16],[c-28,GY-16],[c-16,GY-16],[c+16,GY-16],[c+28,GY-16],[c-10,GY-76],[c+4,GY-76]]);
+        addBlock(c-9,GY-54,'q',18);
+        addCoins([[c-44,GY-18],[c-30,GY-18],[c-16,GY-18],[c+18,GY-18],[c+32,GY-18],[c-14,GY-76],[c+2,GY-76]]);
       }
       enemies.push({x:c+(k%2?-34:34),y:GY-14,w:14,h:14,ox:c+(k%2?-34:34),dir:1,dead:0,range:22});
       if(k>=3) enemies.push({x:c+(k%2?50:-50),y:GY-14,w:14,h:14,ox:c+(k%2?50:-50),dir:-1,dead:0,range:18});
@@ -802,7 +996,7 @@ function drawChar(c,x,y,o){ drawCharU(c,x+6,y+HB,KS,o); }
           else if(P.hurt<=0){P.hurt=1.4;P.vx=-P.face*60;P.vy=-90;P.x+=-P.face*4;st.lives--;sfx('hit');drawInv();bump('hearts');floatMsg(HITQ[Math.floor(Math.random()*HITQ.length)]);boom(P.x+6,P.y+10,'#FF4D6D',8);if(st.lives<=0){startRescue();}}
         }
       });
-      coins.forEach(function(c){ if(!c.got&&P.x<c.x+10&&P.x+12>c.x&&P.y<c.y+10&&P.y+30>c.y){c.got=true;addChispas(1);sfx('coin');boom(c.x+5,c.y+5,'#FFD166',6);} });
+      coins.forEach(function(c){ if(!c.got&&P.x<c.x+14&&P.x+12>c.x&&P.y<c.y+14&&P.y+30>c.y){c.got=true;addChispas(1);sfx('coin');boom(c.x+5,c.y+5,'#FFD166',6);} });
       if(st.idx<S.length&&P.x>=XS[st.idx]) openTrial();
     } else if(st.mode==='dialog'||st.mode==='intro'||st.mode==='rescue'){
       P.vx=0; P.walking=false; P.t+=dt*.2; movePlayer(dt);
@@ -902,7 +1096,7 @@ function drawChar(c,x,y,o){ drawCharU(c,x+6,y+HB,KS,o); }
         rrp(ctx,.4,.4,7.2,7.2,1.8); ctx.fillStyle=col[0]; ctx.fill();
         ctx.fillStyle=col[1]; rrp(ctx,1,.9,5.8,1.8,.9); ctx.fill();
         ctx.strokeStyle='rgba(42,22,80,.85)'; ctx.lineWidth=.7; rrp(ctx,.4,.4,7.2,7.2,1.8); ctx.stroke();
-        if(!b.used){ctx.fillStyle='#6B3E00';ctx.font='700 6.2px Rubik,sans-serif';ctx.textAlign='center';ctx.fillText('?',4,6.3);ctx.textAlign='left';}
+        if(!b.used){ctx.fillStyle='#6B3E00';ctx.font='700 7.4px Rubik,sans-serif';ctx.textAlign='center';ctx.fillText('?',4,6.6);ctx.textAlign='left';}
       } else if(b.type==='b'){ blk(0,0,'brick'); }
       else blk(0,0,'cobble');
       ctx.restore();
@@ -930,10 +1124,10 @@ function drawChar(c,x,y,o){ drawCharU(c,x+6,y+HB,KS,o); }
   }
   function drawCoins(){
     coins.forEach(function(c,i){ if(c.got) return;
-      var bob=Math.sin(st.time*4+i)*1.8, x=c.x+5, y=c.y+5+bob, wd=.35+.65*Math.abs(Math.sin(st.time*3+i));
-      glow(x,y,13,'255,214,100',.3);
-      ctx.beginPath(); ctx.ellipse(x,y,5.6*wd+.8,5.8,0,0,6.2832); ctx.fillStyle='#FFD93D'; ctx.fill(); ctx.lineWidth=1.1; ctx.strokeStyle='#8A5A00'; ctx.stroke();
-      if(wd>.45){ctx.fillStyle='#FFF3A0';ctx.fillRect(x-.8,y-3.4,1.6,6.8);}
+      var bob=Math.sin(st.time*4+i)*1.8, x=c.x+7, y=c.y+7+bob, wd=.35+.65*Math.abs(Math.sin(st.time*3+i));
+      glow(x,y,17,'255,214,100',.3);
+      ctx.beginPath(); ctx.ellipse(x,y,7.6*wd+1,7.8,0,0,6.2832); ctx.fillStyle='#FFD93D'; ctx.fill(); ctx.lineWidth=1.1; ctx.strokeStyle='#8A5A00'; ctx.stroke();
+      if(wd>.45){ctx.fillStyle='#FFF3A0';ctx.fillRect(x-1,y-4.6,2,9.2);}
     });
   }
   function drawEnemy(e){
@@ -1262,7 +1456,8 @@ function drawChar(c,x,y,o){ drawCharU(c,x+6,y+HB,KS,o); }
       '<p class="err" id="err" role="alert">'+(msg||'')+'</p>'+
       '<p class="small" style="margin:0">Ocho pruebas, de 5 a 8 minutos. No hay respuestas buenas ni malas: tus decisiones van formando un mapa de tu clase que verás al amanecer.'+
       (SHEET_URL?' Al terminar se guarda un registro con tu nombre de pila, la materia y tu mapa, solo para ver cómo avanza el campus en conjunto.':'')+'</p>'+
-      '<div><button class="btn" id="start">Entrar al bosque</button></div></div></div>';
+      '<div><button class="btn" id="start">Entrar al bosque</button></div></div>'+
+      '<div class="card"><p class="small" style="margin:0">Una propuesta de autoría de <b>Gabriela Martínez Bello</b>, Líder Docente del Campus Cancún, desarrollada junto con Claude (Anthropic) como co-creador.</p></div></div>';
     setModeText();
     var ms=app.querySelectorAll('.mode');
     for(var mq=0;mq<ms.length;mq++){ ms[mq].addEventListener('click',function(){
@@ -1440,6 +1635,7 @@ function drawChar(c,x,y,o){ drawCharU(c,x+6,y+HB,KS,o); }
         '<li><b>Audífonos y celular.</b> Se atienden con el mismo criterio: importa el impacto en el aprendizaje. Si hay una razón de salud o familiar, el estudiante lo avisa antes al docente y a la mentora (figura de acompañamiento).</li></ul></div>':'')+
       '<div class="card links"><h3>Si quieres seguir explorando</h3>'+
       (TEC?'<p style="margin:8px 0 0">En <a href="'+APP_URL+'" target="_blank" rel="noopener">Aula CLARA</a> encuentras, en el menú Preparar, el apartado «Tecnología con propósito»: plantillas del acuerdo de dispositivos y del Aviso de IA para publicar en Canvas, y una guía para construir el acuerdo con tu grupo.</p></div>':'<p style="margin:8px 0 0">En <a href="'+APP_URL+'" target="_blank" rel="noopener">Aula CLARA</a> está la lección «El porqué de CLARA» y la herramienta Diseño de clase, que arma una planeación con las cinco fases a partir de un tema.</p></div>')+
+      '<div class="card"><p class="small" style="margin:0">Una propuesta de autoría de <b>Gabriela Martínez Bello</b>, Líder Docente del Campus Cancún, desarrollada junto con Claude (Anthropic) como co-creador.</p></div>'+
       '<div class="actions"><button class="btn" id="again">Jugar con otra clase</button><button class="btn ghost" id="copy">Copiar mi resumen</button></div>'+
       '<p class="small" id="copied" role="status"></p></div>';
     paintPortraits(app);
